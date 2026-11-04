@@ -1,0 +1,9 @@
+# Versiones directas; las transitivas están fijadas en requirements.lock.
+-c requirements.lock
+fastapi==0.162.0
+uvicorn==0.54.0
+sqlalchemy==2.1.8
+pydantic-settings==2.16.2
+psycopg==3.3.7
+psycopg-binary==3.3.7
+alembic==1.20.1

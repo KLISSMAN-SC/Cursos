@@ -3,10 +3,11 @@
 Repositorio del equipo: cinco servicios backend independientes y una aplicación
 frontend Angular compartida, organizada por áreas funcionales.
 
-Este commit contiene la estructura inicial y sus acuerdos propuestos. Todavía no
-incluye aplicaciones ejecutables, dependencias instaladas, endpoints, migraciones
-reales ni contenedores. La estructura no implica que los requerimientos estén
-implementados. El equipo debe confirmar los contratos antes de conectar servicios.
+El repositorio contiene la estructura inicial y sus acuerdos propuestos.
+ComunidadService ya incluye una base ejecutable FastAPI/PostgreSQL con endpoints
+de salud, Docker y pruebas; consultar su README para arrancarla. Sus funciones de
+negocio y pantallas siguen pendientes. Los demás backends y el frontend mantienen
+su estructura inicial. El equipo debe confirmar los contratos de integración.
 
 ## Distribución del trabajo
 
