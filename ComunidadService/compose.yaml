@@ -1,0 +1,44 @@
+name: cursos-comunidad
+
+services:
+  comunidad-db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${COMUNIDAD_DB_NAME:-comunidad_db}
+      POSTGRES_USER: ${COMUNIDAD_DB_USER:-comunidad_user}
+      POSTGRES_PASSWORD: ${COMUNIDAD_DB_PASSWORD:?Copia .env.example a .env y configura la clave}
+    volumes:
+      - comunidad_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  comunidadservice:
+    build:
+      context: .
+    environment:
+      COMUNIDAD_DB_HOST: comunidad-db
+      COMUNIDAD_DB_PORT: "5432"
+      COMUNIDAD_DB_NAME: ${COMUNIDAD_DB_NAME:-comunidad_db}
+      COMUNIDAD_DB_USER: ${COMUNIDAD_DB_USER:-comunidad_user}
+      COMUNIDAD_DB_PASSWORD: ${COMUNIDAD_DB_PASSWORD:?Configura COMUNIDAD_DB_PASSWORD}
+      COMUNIDAD_DB_CONNECT_TIMEOUT: ${COMUNIDAD_DB_CONNECT_TIMEOUT:-5}
+      COMUNIDAD_CORS_ORIGINS: '${COMUNIDAD_CORS_ORIGINS:-["http://localhost:4200"]}'
+    ports:
+      - "127.0.0.1:${COMUNIDAD_PORT:-8001}:8000"
+    depends_on:
+      comunidad-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/db', timeout=7).close()"]
+      interval: 15s
+      timeout: 10s
+      start_period: 15s
+      retries: 4
+    restart: unless-stopped
+
+volumes:
+  comunidad_data:
