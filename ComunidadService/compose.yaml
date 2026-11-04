@@ -17,9 +17,13 @@ services:
     restart: unless-stopped
 
   comunidadservice:
+    image: cursos-comunidadservice:local
     build:
       context: .
     environment:
+      COMUNIDAD_JWT_PUBLIC_KEY_FILE: ${COMUNIDAD_JWT_PUBLIC_KEY_FILE:-config/jwt/usuarios-public.pem}
+      COMUNIDAD_JWT_ISSUER: ${COMUNIDAD_JWT_ISSUER:-UsuarioService}
+      COMUNIDAD_JWT_AUDIENCE: ${COMUNIDAD_JWT_AUDIENCE:-ComunidadService}
       COMUNIDAD_DB_HOST: comunidad-db
       COMUNIDAD_DB_PORT: "5432"
       COMUNIDAD_DB_NAME: ${COMUNIDAD_DB_NAME:-comunidad_db}
@@ -27,6 +31,8 @@ services:
       COMUNIDAD_DB_PASSWORD: ${COMUNIDAD_DB_PASSWORD:?Configura COMUNIDAD_DB_PASSWORD}
       COMUNIDAD_DB_CONNECT_TIMEOUT: ${COMUNIDAD_DB_CONNECT_TIMEOUT:-5}
       COMUNIDAD_CORS_ORIGINS: '${COMUNIDAD_CORS_ORIGINS:-["http://localhost:4200"]}'
+    volumes:
+      - ./config/jwt:/app/config/jwt:ro
     ports:
       - "127.0.0.1:${COMUNIDAD_PORT:-8001}:8000"
     depends_on:
@@ -38,6 +44,30 @@ services:
       timeout: 10s
       start_period: 15s
       retries: 4
+    restart: unless-stopped
+
+  sesiones-prueba:
+    profiles: ["herramientas"]
+    image: cursos-comunidadservice:local
+    pull_policy: never
+    user: "0:0"
+    env_file: .env
+    command: ["python", "-m", "scripts.preparar_pruebas_jwt"]
+    volumes:
+      - ./config/jwt:/app/config/jwt
+      - ./.local-auth:/app/.local-auth
+
+  frontservice:
+    profiles: ["front"]
+    build:
+      context: ../FrontService
+      args:
+        APP_CONFIGURATION: local
+    ports:
+      - "127.0.0.1:${FRONT_PORT:-4200}:80"
+    depends_on:
+      comunidadservice:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

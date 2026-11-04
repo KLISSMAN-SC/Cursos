@@ -23,6 +23,9 @@ class Settings(BaseSettings):
     db_user: str = "comunidad_user"
     db_password: SecretStr = SecretStr("")
     db_connect_timeout: int = Field(default=5, ge=1, le=30)
+    jwt_public_key_file: str = "config/jwt/usuarios-public.pem"
+    jwt_issuer: str = "UsuarioService"
+    jwt_audience: str = "ComunidadService"
     cors_origins: list[str] = ["http://localhost:4200"]
 
     def database_url(self) -> URL:

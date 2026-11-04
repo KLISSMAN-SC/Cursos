@@ -17,9 +17,9 @@ usar desde la pantalla con la identidad correcta, incluidos errores y permisos.
 | Comprar y simular pago | PagoService | FrontPagos | Aprobación/rechazo desde la pantalla, sin cobro real | Pendiente |
 | Conceder acceso tras pago | Dueño a acordar | FrontPagos y FrontProgreso | Compra aprobada habilita el curso al alumno correcto | Pendiente |
 | Registrar avance | ProgresoService | FrontProgreso | Avance de la cuenta correcta y control de acceso | Pendiente |
-| Consultar reseñas de curso | ComunidadService | FrontComunidad/resenas | Mostrar visibles y estado sin resultados | Pendiente |
-| Publicar reseña | ComunidadService | FrontComunidad/resenas | Validación de datos e identidad del alumno | Pendiente |
-| Ocultar reseña con motivo | ComunidadService | FrontComunidad/moderacion | Acción de administrador, auditoría y reseña no pública | Pendiente |
+| Consultar reseñas de curso | ComunidadService | FrontComunidad/resenas | Visibles, resumen, paginación y vacío; pruebas API/UI | Implementado; verificar en Docker |
+| Publicar reseña | ComunidadService | FrontComunidad/resenas | Validación estricta, alumno JWT, formulario y errores | Implementado; integración Usuario/Catálogo pendiente |
+| Ocultar reseña con motivo | ComunidadService | FrontComunidad, tarjeta de reseña | ADMIN JWT, motivo, auditoría atómica y resumen actualizado | Implementado; verificar en Docker |
 | Consultar puntos y logros | ComunidadService | FrontComunidad/logros | Resultados propios y estado sin logros | Pendiente |
 | Otorgar premio por hito | ProgresoService y ComunidadService | FrontComunidad/logros | Evento acordado; repetirlo no duplica premios | Pendiente |
 

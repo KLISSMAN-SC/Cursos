@@ -1,0 +1,192 @@
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">
+      <span class="tiny-mark" aria-hidden="true">✦</span> APRENDEMOS MEJOR EN
+      COMUNIDAD
+    </p>
+    <h1>Tu experiencia también<br /><em>deja huella.</em></h1>
+    <p class="hero-description">
+      Conoce otras perspectivas y comparte lo que este curso te dejó.
+    </p>
+  </div>
+  <div class="course-label">
+    <span aria-hidden="true">↗</span>
+    <div>
+      <small>ESTÁS EN LA COMUNIDAD DE</small
+      ><strong>{{ courseTitle() || "Curso #" + courseId() }}</strong>
+    </div>
+  </div>
+</section>
+@if (notice()) {
+  <div class="success-banner" role="status">
+    <span aria-hidden="true">✓</span>{{ notice() }}
+  </div>
+}
+@if (error()) {
+  <section class="panel error-panel" role="alert">
+    <h2>No pudimos mostrar las reseñas</h2>
+    <p>{{ error() }}</p>
+    @if (courseId()) {
+      <button class="secondary-button" (click)="load()">
+        Volver a intentar
+      </button>
+    }
+  </section>
+}
+@if (loading() && !data()) {
+  <section class="loading-panel" aria-live="polite" aria-busy="true">
+    <div class="loading-dot"></div>
+    <p>Buscando experiencias para compartir…</p>
+  </section>
+}
+@if (data(); as page) {
+  <div class="community-grid" [attr.aria-busy]="loading()">
+    <aside>
+      <app-rating-summary [summary]="page.resumen" />
+      <p class="community-caption">
+        Distintas experiencias.<br />Un mismo deseo de aprender.
+      </p>
+    </aside>
+    <section class="stream" aria-labelledby="reviews-title">
+      <div class="stream-heading">
+        <div>
+          <p class="eyebrow">EXPERIENCIAS REALES</p>
+          <h2 id="reviews-title">
+            Reseñas del curso <span class="count">{{ page.total }}</span>
+          </h2>
+        </div>
+        <button
+          class="text-button"
+          (click)="load(page.offset)"
+          [disabled]="loading()"
+        >
+          ↻ Actualizar
+        </button>
+      </div>
+      @if (session.account()?.rol === "ESTUDIANTE") {
+        <form
+          class="panel composer"
+          (ngSubmit)="publish()"
+          [attr.aria-busy]="posting()"
+        >
+          <div class="composer-heading">
+            <span class="composer-icon" aria-hidden="true">✎</span>
+            <div>
+              <h3>¿Cómo fue tu experiencia?</h3>
+              <p>Tu opinión ayuda a que sigamos aprendiendo.</p>
+            </div>
+          </div>
+          <div class="rating-field">
+            <label for="rating">Tu calificación</label
+            ><select
+              id="rating"
+              name="rating"
+              [(ngModel)]="rating"
+              [disabled]="posting()"
+            >
+              <option [ngValue]="5">★★★★★ · Excelente</option>
+              <option [ngValue]="4">★★★★☆ · Muy bueno</option>
+              <option [ngValue]="3">★★★☆☆ · Bueno</option>
+              <option [ngValue]="2">★★☆☆☆ · Puede mejorar</option>
+              <option [ngValue]="1">★☆☆☆☆ · No era lo que esperaba</option>
+            </select>
+          </div>
+          <label for="comment"
+            >Comparte algo que te haya servido
+            <span class="optional">(opcional)</span></label
+          ><textarea
+            id="comment"
+            name="comment"
+            [(ngModel)]="comment"
+            maxlength="2000"
+            rows="4"
+            placeholder="¿Qué aprendiste? ¿Qué te gustaría que otros supieran?"
+            [disabled]="posting()"
+            aria-describedby="comment-help"
+          ></textarea>
+          <div class="composer-footer">
+            <small id="comment-help"
+              >{{ comment.length }}/2000 · Comparte con respeto.</small
+            ><button
+              class="primary-button"
+              type="submit"
+              [disabled]="posting()"
+            >
+              {{ posting() ? "Publicando…" : "Publicar reseña" }}
+              <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+          @if (formError()) {
+            <p class="error-message" role="alert">{{ formError() }}</p>
+          }
+        </form>
+      } @else if (session.account()?.rol === "ADMIN") {
+        <div class="moderator-note">
+          <span aria-hidden="true">◇</span>
+          <p>
+            <strong>Estás moderando esta comunidad.</strong><br />Puedes ocultar
+            una reseña e indicar el motivo desde su tarjeta.
+          </p>
+        </div>
+      } @else if (session.status() === "loading") {
+        <div class="guest-note" role="status">Comprobando tu sesión…</div>
+      } @else if (session.status() === "unavailable") {
+        <div class="guest-note">
+          <p>No pudimos comprobar tu sesión.</p>
+          <button class="secondary-button" (click)="session.restore()">
+            Reintentar
+          </button>
+        </div>
+      } @else {
+        <div class="guest-note">
+          <span aria-hidden="true">✦</span>
+          <div>
+            <strong>Todas las experiencias empiezan con una voz.</strong>
+            <p>Inicia sesión para compartir la tuya.</p>
+            @if (localSessions) {
+              <a routerLink="/desarrollo/sesion">Conectar sesión de prueba →</a>
+            }
+          </div>
+        </div>
+      }
+      <div class="review-list">
+        @for (review of page.items; track review.id) {
+          <app-review-card
+            [review]="review"
+            [admin]="session.account()?.rol === 'ADMIN'"
+            (hidden)="reviewHidden()"
+          />
+        } @empty {
+          <div class="panel empty-state">
+            <span aria-hidden="true">✧</span>
+            <h3>Aquí empieza la conversación</h3>
+            <p>
+              Este curso todavía no tiene reseñas visibles.<br />Tu experiencia
+              puede ser la primera.
+            </p>
+          </div>
+        }
+      </div>
+      @if (page.total > page.limit) {
+        <nav class="pagination" aria-label="Páginas de reseñas">
+          <button
+            class="secondary-button"
+            (click)="load(page.offset - page.limit)"
+            [disabled]="loading() || page.offset === 0"
+          >
+            ← Anterior</button
+          ><span
+            >{{ page.offset + 1 }}–{{ page.offset + page.items.length }} de
+            {{ page.total }}</span
+          ><button
+            class="secondary-button"
+            (click)="load(page.offset + page.limit)"
+            [disabled]="loading() || page.offset + page.limit >= page.total"
+          >
+            Siguiente →
+          </button>
+        </nav>
+      }
+    </section>
+  </div>
+}

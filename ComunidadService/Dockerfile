@@ -11,6 +11,7 @@ RUN python -m pip install --no-cache-dir -r requirements.txt \
 COPY --chown=comunidad:comunidad app ./app
 COPY --chown=comunidad:comunidad migrations ./migrations
 COPY --chown=comunidad:comunidad alembic.ini ./alembic.ini
+COPY --chown=comunidad:comunidad scripts ./scripts
 USER comunidad
 EXPOSE 8000
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

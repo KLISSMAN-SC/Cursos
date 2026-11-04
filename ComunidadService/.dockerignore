@@ -9,3 +9,6 @@ __pycache__/
 .git/
 tests/
 backups/
+
+.local-auth/
+config/jwt/*.pem

@@ -1,0 +1,133 @@
+.site-header {
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+.header-content {
+  max-width: 1150px;
+  margin: auto;
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  padding: 0 2rem;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  color: var(--ink);
+}
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 40px;
+  border-radius: 12px;
+  transform: rotate(-7deg);
+  background: var(--forest);
+  color: white;
+  font-family: Georgia, serif;
+  font-size: 2rem;
+  font-weight: bold;
+}
+.brand strong {
+  font-size: 1.18rem;
+  letter-spacing: -0.04em;
+}
+.brand small {
+  display: block;
+  font-size: 0.61rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+nav {
+  margin: auto;
+}
+nav a {
+  padding: 0.65rem 1.15rem;
+  border-radius: 30px;
+  font-size: 0.82rem;
+  text-decoration: none;
+  color: var(--forest);
+  font-weight: 600;
+}
+.active {
+  background: #edf3e9;
+}
+.account-area {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  justify-content: end;
+}
+.account-label {
+  font-size: 0.75rem;
+}
+.dev-link {
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-decoration: underline;
+}
+.site-footer {
+  max-width: 1150px;
+  padding: 2.5rem 2rem;
+  margin: 3rem auto 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+.footer-brand .brand-mark {
+  width: 25px;
+  height: 26px;
+  font-size: 1.35rem;
+  border-radius: 8px;
+}
+.footer-brand strong {
+  font-size: 0.85rem;
+}
+.site-footer > span {
+  margin-left: auto;
+}
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  background: var(--forest);
+  color: white;
+  padding: 1rem;
+  z-index: 10;
+}
+.skip-link:focus {
+  top: 0;
+}
+@media (max-width: 640px) {
+  .header-content {
+    padding: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+    min-height: 70px;
+  }
+  nav {
+    margin-left: auto;
+    margin-right: 0;
+  }
+  .account-area {
+    width: 100%;
+    justify-content: end;
+  }
+  .site-footer {
+    margin: 2rem 1rem 0;
+    padding: 1.5rem 0;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+  }
+  .site-footer > span {
+    margin-left: 0;
+    width: 100%;
+  }
+}

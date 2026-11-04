@@ -4,10 +4,11 @@ Repositorio del equipo: cinco servicios backend independientes y una aplicación
 frontend Angular compartida, organizada por áreas funcionales.
 
 El repositorio contiene la estructura inicial y sus acuerdos propuestos.
-ComunidadService ya incluye una base ejecutable FastAPI/PostgreSQL con endpoints
-de salud, Docker y pruebas; consultar su README para arrancarla. Sus funciones de
-negocio y pantallas siguen pendientes. Los demás backends y el frontend mantienen
-su estructura inicial. El equipo debe confirmar los contratos de integración.
+ComunidadService incluye FastAPI/PostgreSQL, reseñas, moderación auditada y pruebas.
+FrontService ya está inicializado con Angular y las pantallas de FrontComunidad.
+Los demás backends y áreas mantienen su estructura inicial. UsuarioService y
+Catálogo aún deben completar los contratos de integración; la prueba independiente
+usa JWT de laboratorio firmados localmente. Ver ComunidadService/docs/RESENAS.md.
 
 ## Distribución del trabajo
 
@@ -36,10 +37,9 @@ frontend administrativo.
 - infra: configuración y scripts de infraestructura compartida cuando se concrete
   el despliegue. Las migraciones pertenecen al servicio que posee la base.
 
-Los Dockerfile y archivos de dependencias se crearán dentro del servicio
-correspondiente al inicializarlo. El archivo compose.yaml del conjunto se creará
-en la raíz cuando existan servicios ejecutables. No hay archivos vacíos que
-pretendan ser configuraciones operativas.
+Cada aplicación mantiene su Dockerfile y archivos de dependencias. El compose
+local de ComunidadService incluye el perfil front para probar su API y pantalla.
+El compose general del equipo se agregará a la raíz al integrar los demás servicios.
 
 ## Organización por tecnología
 
@@ -49,10 +49,10 @@ src, tests y docs como punto de partida; sus responsables deben adaptar esas
 carpetas a las convenciones de su framework antes de generar el proyecto (por
 ejemplo, src/main y src/test en Java).
 
-FrontService será una única aplicación Angular. Las carpetas FrontComunidad,
+FrontService es una única aplicación Angular. Las carpetas FrontComunidad,
 FrontUsuarios, FrontCatalogo, FrontPagos y FrontProgreso son áreas de esa aplicación,
-no proyectos Angular separados. La inicialización del workspace y las
-modificaciones a sus archivos centrales deben coordinarse y realizarse una vez.
+no proyectos Angular separados. El workspace ya está inicializado; las modificaciones a sus archivos centrales
+deben coordinarse entre los integrantes.
 
 ## Forma de trabajar
 
