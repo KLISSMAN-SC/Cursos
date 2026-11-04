@@ -1,9 +1,8 @@
 # Base inicial de ComunidadService
 
-Esta entrega prepara la infraestructura técnica del servicio. No implementa
-reseñas, moderación ni premios todavía. Tampoco inicializa Angular ni cambia
-las carpetas de los compañeros. La siguiente entrega debe enlazar una función
-de negocio con su pantalla de FrontComunidad.
+Esta documentación describe la infraestructura de la primera entrega. Las
+reseñas y la moderación se añadieron después y se documentan en RESENAS.md,
+junto con su pantalla Angular. Los premios siguen pendientes.
 
 ## Hecho
 

@@ -1,123 +1,75 @@
-# ComunidadService — base inicial
+# ComunidadService
 
-Backend Python/FastAPI de ComunidadService. Esta entrega inicia el proyecto nuevo:
-arranque, configuración, conexión PostgreSQL, salud, Docker y base de migraciones.
-Las reseñas, moderación y logros siguen pendientes de implementación junto a sus
-pantallas de FrontService/src/app/FrontComunidad/. No se implementan identidades
-ficticias ni se asumen contratos todavía no acordados con los compañeros.
+API FastAPI/PostgreSQL de reseñas, con validación JWT y moderación auditada.
+Frontend asociado: FrontService/src/app/FrontComunidad/.
 
-## Arranque recomendado con Docker Desktop
+| Función | API | Pantalla |
+| --- | --- | --- |
+| Consultar reseñas y resumen | GET /api/v1/resenas?curso_id=1 | Reseñas del curso, público |
+| Publicar reseña | POST /api/v1/resenas | Formulario de alumno |
+| Ocultar reseña con motivo | PATCH /api/v1/resenas/{id}/ocultar | Acción del administrador en la tarjeta |
+| Comprobar identidad | GET /api/v1/sesion | Sesión compartida de FrontService |
+| Estado y conexión | GET /health y GET /health/db | Documentación /docs |
 
-Desde la carpeta local del repositorio Cursos, en PowerShell:
+## Arranque desde cero con Docker
 
-```powershell
-cd ComunidadService
-Copy-Item .env.example .env
-```
-
-Este segundo comando es para la primera vez; no vuelvas a copiarlo sobre un .env
-ya configurado. Abre .env y cambia COMUNIDAD_DB_PASSWORD. Luego ejecuta:
+Desde ComunidadService, copiar .env.example a .env solo si aún no tienes .env y
+cambiar COMUNIDAD_DB_PASSWORD. Docker no necesita PostgreSQL instalado en Windows.
 
 ```powershell
-docker compose up -d --build
-docker compose ps
+docker compose build comunidadservice
+docker compose up -d comunidad-db
+docker compose run --rm comunidadservice python -m alembic upgrade head
+docker compose --profile herramientas run --rm --no-deps sesiones-prueba
+docker compose --profile front up -d --build
 ```
 
-Abre estas direcciones:
+Abrir http://localhost:4200 y seguir la [guía de reseñas](docs/RESENAS.md) para
+cargar las sesiones de prueba. API y Swagger: http://localhost:8001/docs.
+Si ya tenías la base funcionando, conservar .env y el volumen; usar la misma guía
+para actualizar desde la rama feat/comunidad-resenas.
 
-- http://localhost:8001/health — el proceso responde.
-- http://localhost:8001/health/db — consulta SQL real a PostgreSQL.
-- http://localhost:8001/docs — documentación interactiva.
+La herramienta de laboratorio permite probar el alumno y el administrador con
+JWT firmados localmente. No reemplaza el inicio de sesión real de UsuarioService.
+La configuración del emisor y su clave pública está documentada en
+[el contrato de ComunidadService](../docs/contratos/ComunidadService.md).
 
-Respuesta de /health:
+## Ejecución Python opcional
 
-```json
-{"status":"ok","service":"ComunidadService","version":"0.1.0"}
-```
-
-Respuesta de /health/db cuando está conectado:
-
-```json
-{"status":"ok","service":"ComunidadService","version":"0.1.0","database":"comunidad_db"}
-```
-
-Si /health responde y /health/db devuelve 503, el proceso funciona pero la base
-no está configurada o no responde. No se devuelve un estado de conexión ficticio.
-Para revisar el error:
-
-```powershell
-docker compose logs --tail 80 comunidadservice comunidad-db
-```
-
-Este compose es específico de ComunidadService, con un volumen de datos propio.
-No publica el puerto 5432 en Windows; no requiere instalar PostgreSQL localmente.
-El backend usa 8001 para no ocupar el 8000 del proyecto anterior. COMUNIDAD_PORT en
-.env permite cambiarlo. El compose general del equipo sigue pendiente.
-
-PostgreSQL conserva usuario y contraseña en el volumen al inicializarlo; cambiar
-.env después no cambia automáticamente las credenciales de una base existente.
-
-Para detener el entorno conservando los datos:
-
-```powershell
-docker compose down
-```
-
-## Ejecución local opcional con Python
-
-Requiere Python 3.11 o superior y PostgreSQL disponible. Si usas Python directamente,
-configura en .env el host, puerto, nombre, usuario y clave de tu PostgreSQL real.
-No ejecutes a la vez Uvicorn y Docker usando el mismo puerto del backend.
-
-Desde ComunidadService:
+Requiere Python 3.11 o superior. Desde ComunidadService:
 
 ```powershell
 py -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m alembic upgrade head
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8001
 ```
 
-No es necesario activar el entorno virtual ni cambiar la política de PowerShell.
-El .env se lee respecto a la carpeta del servicio, no al directorio actual de la terminal.
+Para esta opción configurar en .env el PostgreSQL real al que se conectará Python.
+El .env se lee desde la carpeta del servicio, no desde la terminal actual.
 
-## Pruebas y formato
-
-En un entorno Python con requirements-dev.txt instalado:
+## Pruebas
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe -m ruff check app tests migrations
+.\.venv\Scripts\python.exe -m ruff check app tests migrations scripts
 .\.venv\Scripts\python.exe -m pip check
 ```
 
-Las pruebas no necesitan PostgreSQL ni modifican bases locales: usan dobles de
-prueba y un motor SQLite en memoria para verificar la ruta SQL. La prueba real de
-PostgreSQL consiste en arrancar el compose y comprobar /health/db; debe hacerse
-en un entorno con Docker. No se confunden ambas comprobaciones.
-
-## Migraciones
-
-Alembic queda configurado, sin revisiones ni tablas de negocio todavía. No se
-llama create_all ni se cambia el esquema automáticamente al iniciar el backend.
-Se creará la primera migración al implementar los modelos de reseñas.
+Las pruebas usan SQLite aislado y JWT de prueba; no alteran bases del desarrollador.
+La comprobación real de PostgreSQL debe realizarse levantando el compose.
 
 ## Organización
 
-- app/main.py: aplicación y arranque/cierre.
-- app/core/config.py: variables de entorno y nombre ComunidadService.
-- app/database/: motor, sesiones y metadatos.
-- app/routers/health.py: estado y comprobación de conexión.
-- app/schemas/health.py: contratos de respuesta.
-- app/models/, app/services/, app/clients/, app/events/: listas para el desarrollo.
-- migrations/: configuración de Alembic y revisiones futuras.
-- tests/: configuración y pruebas de la base.
+- app/core: configuración y verificación JWT/roles.
+- app/models: resenas y moderaciones_resenas.
+- app/schemas: validación estricta y respuestas públicas.
+- app/services: listado, publicación y ocultamiento transaccional.
+- app/routers: salud, sesión y reseñas.
+- app/database: motor, sesiones y metadatos de migraciones.
+- migrations/versions: migraciones reales de las tablas.
+- scripts: herramienta local de sesiones, sin endpoint de autenticación ficticia.
+- tests: permisos, datos, errores, persistencia y migraciones.
 
-## Próxima funcionalidad
-
-Reseñas por curso, con validación y permisos reales, acompañadas de su pantalla.
-Antes de integrarla hay que confirmar con UsuarioService el mecanismo de identidad
-y los roles, y con CatalogoService los identificadores y reglas para reseñar.
-No usar X-Student-Id o X-Admin-Id editables como autenticación real.
-
-Referencias de implementación: [configuración FastAPI](https://fastapi.tiangolo.com/advanced/settings/)
-y [contenedores FastAPI](https://fastapi.tiangolo.com/deployment/docker/).
+Pendientes: puntos/logros, eventos de ProgresoService y conexión definitiva con
+UsuarioService, Catálogo y las reglas acordadas de elegibilidad para reseñar.

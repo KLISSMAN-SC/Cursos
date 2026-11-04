@@ -1,37 +1,55 @@
 # FrontService
 
-Una aplicación Angular para todo el equipo. Cada integrante es responsable de su
-área funcional y de conectar sus pantallas con el backend correspondiente.
+Una aplicación Angular compartida. El workspace está inicializado y FrontComunidad
+incluye la consulta, publicación y moderación de reseñas. Las carpetas de los demás
+integrantes se conservan para sus propias áreas.
 
-| Ubicación | Uso |
-| --- | --- |
-| src/app/core/auth | Sesión compartida y acceso a la identidad del usuario |
-| src/app/core/guards | Restricción de navegación por sesión y rol |
-| src/app/core/http | Configuración HTTP común e interceptores, si se necesitan |
-| src/app/layout | Cabecera, menú y estructura de la aplicación |
-| src/app/shared/components | Botones, estados vacíos y otros elementos comunes |
-| src/app/shared/models | Tipos realmente compartidos; no todos los modelos del proyecto |
-| src/app/FrontUsuarios | Ingreso, registro, cuenta y gestión de usuarios |
-| src/app/FrontCatalogo | Catálogo, detalle y gestión del contenido de cursos |
-| src/app/FrontPagos | Compra, simulador y consulta de compras |
-| src/app/FrontProgreso | Aprendizaje y seguimiento del avance |
-| src/app/FrontComunidad | Reseñas, logros y moderación de comentarios |
-| public/assets | Imágenes e iconos estáticos |
-| docs | Convenciones visuales y decisiones del frontend |
+## Arranque con Docker
 
-Dentro de cada área: pages, components, services y models. Mantener archivos y
-componentes pequeños con responsabilidades claras. Las pruebas de componentes y
-servicios se ubicarán junto al código correspondiente, con el sufijo .spec.ts.
+Usar el compose de ComunidadService con el perfil front, siguiendo
+[la guía de reseñas](../ComunidadService/docs/RESENAS.md). Abrir http://localhost:4200.
+El proxy de Nginx conecta /api/comunidad/ con ComunidadService dentro de Docker.
 
-No hay package.json ni angular.json todavía. Son carpetas preparadas, no una
-aplicación instalable. Al inicializar Angular se mantendrán estas áreas y se
-crearán una sola vez los archivos centrales del workspace. El equipo debe fijar
-la versión de Angular y Node y la biblioteca visual antes de instalar dependencias.
+## Desarrollo local
 
-Las rutas globales, app.config.ts, estilos generales, package.json y su lockfile
-son compartidos. Coordinar sus cambios. Cada área puede exponer su archivo de
-rutas para cargarlo desde la navegación principal al implementarla.
+Requiere Node 24 LTS compatible con Angular 22 y npm. Desde FrontService:
 
-Mostrar u ocultar controles según el rol mejora la experiencia; cada backend
-valida por separado la autorización de la operación. Los servicios de área deben
-usar contratos acordados y configuración de URLs, sin credenciales en el código.
+```powershell
+npm ci
+npm start
+```
+
+El proxy de desarrollo conecta con http://127.0.0.1:8001. Mantener ComunidadService
+arrancado en ese puerto; si cambias el puerto, ajustar proxy.conf.json.
+
+```powershell
+npm test -- --watch=false
+npm run build
+npm run build:local
+```
+
+production deshabilita la ruta de sesiones de prueba; local y ng serve la habilitan.
+La carpeta de salida es dist/cursos-front/browser. El Dockerfile compila production
+por defecto; el compose de pruebas elige local explícitamente.
+
+## Reparto
+
+- src/app/FrontComunidad: API, tipos, resumen, tarjetas y página de reseñas.
+- src/app/FrontUsuarios: reservada para el responsable de usuarios.
+- src/app/FrontCatalogo: reservada para Catálogo.
+- src/app/FrontPagos: reservada para Pagos.
+- src/app/FrontProgreso: reservada para Progreso.
+- src/app/core/auth: identidad verificada por backend y almacenamiento de sesión.
+- src/app/core/http: interceptor que adjunta JWT solo a /api/comunidad/.
+- src/app/app.routes.ts y app.config.ts: rutas y configuración globales compartidas.
+
+La sesión compartida actual acepta un JWT y consulta /api/v1/sesion antes de
+habilitar funciones por rol. No se confía en decodificar el rol en el navegador.
+El token elegido vive en sessionStorage; no se guardan contraseñas ni claves
+privadas. Al integrar UsuarioService, conectar su login real con este adaptador y
+coordinar el interceptor de las otras áreas: el actual no envía tokens a dominios
+ajenos ni a rutas de otros servicios.
+
+Cada área contiene pages, components, services y models. Las pruebas .spec.ts se
+ubican junto al código. Coordinar cambios a rutas, core, dependencias y estilos
+comunes; cada integrante continúa su backend y pantallas en una rama propia.
