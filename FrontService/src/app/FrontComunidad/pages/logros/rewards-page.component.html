@@ -3,7 +3,7 @@
   <h1>Tus ganas de aprender<br /><em>se convierten en logros.</em></h1>
   <p>Una insignia y 10 puntos por cada módulo completado.</p>
 </header>
-@if (session.account()?.rol !== "ESTUDIANTE") {
+@if (!(session.account()?.roles.includes("ESTUDIANTE") ?? false)) {
   <section class="panel state">
     <h2>
       {{

@@ -36,11 +36,11 @@ export class ModerationPage implements OnDestroy {
       this.error.set("");
       this.notice.set("");
       this.loading.set(false);
-      if (account?.rol === "ADMIN") this.load();
+      if ((account?.roles.includes("MODERADOR_COMUNIDAD") ?? false)) this.load();
     });
   }
   load(offset = 0): void {
-    if (this.session.account()?.rol !== "ADMIN") return;
+    if (!(this.session.account()?.roles.includes("MODERADOR_COMUNIDAD") ?? false)) return;
     const text = this.course.trim();
     const course = text ? Number(text) : null;
     if (

@@ -30,12 +30,12 @@ export class RewardsPage implements OnDestroy {
       this.data.set(null);
       this.error.set("");
       this.loading.set(false);
-      if (account?.rol === "ESTUDIANTE") this.load();
+      if ((account?.roles.includes("ESTUDIANTE") ?? false)) this.load();
     });
   }
   load(offset = 0): void {
     this.request?.unsubscribe();
-    if (this.session.account()?.rol !== "ESTUDIANTE") return;
+    if (!(this.session.account()?.roles.includes("ESTUDIANTE") ?? false)) return;
     this.loading.set(true);
     this.error.set("");
     this.request = this.api.rewards(offset).subscribe({

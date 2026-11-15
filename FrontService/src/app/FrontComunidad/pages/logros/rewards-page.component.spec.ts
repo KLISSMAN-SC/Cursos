@@ -54,7 +54,7 @@ describe("Mis logros", () => {
     expect(fixture.nativeElement.textContent).toContain("cuenta de estudiante");
   });
   it("muestra puntos e insignias propios y limpia al salir", () => {
-    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    session.account.set({ id: 7, nombre: "Usuario 7", email: "usuario7@example.invalid", activo: true, roles: ["ESTUDIANTE"], fechaCreacion: "2026-01-01T00:00:00Z" });
     const fixture = open();
     expect(fixture.nativeElement.textContent).toContain("Módulo #3");
     expect(fixture.componentInstance.data()?.puntos).toBe(10);
@@ -64,7 +64,7 @@ describe("Mis logros", () => {
     expect(fixture.componentInstance.data()).toBeNull();
   });
   it("presenta vacío real con cero puntos", () => {
-    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    session.account.set({ id: 7, nombre: "Usuario 7", email: "usuario7@example.invalid", activo: true, roles: ["ESTUDIANTE"], fechaCreacion: "2026-01-01T00:00:00Z" });
     api.rewards.mockReturnValue(
       of({ items: [], total: 0, puntos: 0, offset: 0, limit: 12 }),
     );
@@ -73,7 +73,7 @@ describe("Mis logros", () => {
     expect(fixture.componentInstance.data()?.puntos).toBe(0);
   });
   it("permite reintentar fallos sin inventar logros", () => {
-    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    session.account.set({ id: 7, nombre: "Usuario 7", email: "usuario7@example.invalid", activo: true, roles: ["ESTUDIANTE"], fechaCreacion: "2026-01-01T00:00:00Z" });
     api.rewards.mockReturnValueOnce(throwError(() => ({ status: 503 })));
     const fixture = open();
     expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeTruthy();
@@ -83,11 +83,11 @@ describe("Mis logros", () => {
     expect(fixture.nativeElement.textContent).toContain("Módulo #3");
   });
   it("descarta respuestas de una sesión anterior", () => {
-    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    session.account.set({ id: 7, nombre: "Usuario 7", email: "usuario7@example.invalid", activo: true, roles: ["ESTUDIANTE"], fechaCreacion: "2026-01-01T00:00:00Z" });
     const pending = new Subject();
     api.rewards.mockReturnValueOnce(pending);
     const fixture = open();
-    session.account.set({ id: 8, rol: "ESTUDIANTE" });
+    session.account.set({ id: 8, nombre: "Usuario 8", email: "usuario8@example.invalid", activo: true, roles: ["ESTUDIANTE"], fechaCreacion: "2026-01-01T00:00:00Z" });
     fixture.detectChanges();
     pending.next({ ...page, puntos: 999 });
     expect(fixture.componentInstance.data()?.puntos).toBe(10);

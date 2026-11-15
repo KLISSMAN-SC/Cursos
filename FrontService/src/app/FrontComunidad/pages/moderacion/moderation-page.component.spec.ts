@@ -60,13 +60,13 @@ describe("Moderación", () => {
     return fixture;
   }
   it("el alumno no consulta el historial administrativo", () => {
-    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    session.account.set({ id: 7, nombre: "Usuario 7", email: "usuario7@example.invalid", activo: true, roles: ["ESTUDIANTE"], fechaCreacion: "2026-01-01T00:00:00Z" });
     const fixture = open();
     expect(api.moderation).not.toHaveBeenCalled();
     expect(fixture.nativeElement.textContent).not.toContain("Texto ocultado");
   });
   it("el admin ve motivo, autor y fecha sin controles para modificar la auditoría", () => {
-    session.account.set({ id: 2, rol: "ADMIN" });
+    session.account.set({ id: 2, nombre: "Usuario 2", email: "usuario2@example.invalid", activo: true, roles: ["MODERADOR_COMUNIDAD"], fechaCreacion: "2026-01-01T00:00:00Z" });
     const fixture = open();
     expect(fixture.nativeElement.textContent).toContain("Lenguaje ofensivo");
     expect(fixture.nativeElement.textContent).toContain("Administrador #23");
@@ -80,7 +80,7 @@ describe("Moderación", () => {
     );
   });
   it("rechaza filtro inválido y filtra por curso y estado", () => {
-    session.account.set({ id: 2, rol: "ADMIN" });
+    session.account.set({ id: 2, nombre: "Usuario 2", email: "usuario2@example.invalid", activo: true, roles: ["MODERADOR_COMUNIDAD"], fechaCreacion: "2026-01-01T00:00:00Z" });
     const fixture = open();
     const component = fixture.componentInstance;
     component.course = "-2";

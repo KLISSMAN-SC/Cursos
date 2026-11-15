@@ -1,0 +1,16 @@
+[35mComunidadService/.dockerignore[m
+[35mComunidadService/.env.example[m
+[35mComunidadService/.gitignore[m
+[35mComunidadService/README.md[m
+[35mComunidadService/app/core/config.py[m
+[35mComunidadService/app/core/security.py[m
+[35mComunidadService/compose.yaml[m
+[35mComunidadService/config/jwt/README.md[m
+[35mComunidadService/docs/COMUNIDAD_COMPLETA.md[m
+[35mComunidadService/docs/RESENAS.md[m
+[35mComunidadService/requirements.lock[m
+[35mComunidadService/requirements.txt[m
+[35mComunidadService/scripts/preparar_pruebas_jwt.py[m
+[35mComunidadService/tests/conftest.py[m
+[35mComunidadService/tests/integration/test_reviews.py[m
+[35mComunidadService/tests/unit/test_local_sessions.py[m

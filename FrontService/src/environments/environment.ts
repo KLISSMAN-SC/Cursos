@@ -1,1 +1,1 @@
-export const environment = { localSessions: true };
+export const environment = { localSessions: false };

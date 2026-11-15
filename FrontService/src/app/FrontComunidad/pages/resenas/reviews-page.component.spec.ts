@@ -78,7 +78,7 @@ describe("Reseñas de Comunidad", () => {
     expect(root.textContent).not.toContain("Ocultar reseña");
   });
   it("el alumno publica con IDs enteros y recarga el resumen", async () => {
-    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    session.account.set({ id: 7, nombre: "Usuario 7", email: "usuario7@example.invalid", activo: true, roles: ["ESTUDIANTE"], fechaCreacion: "2026-01-01T00:00:00Z" });
     const { component, harness, root } = await open();
     component.comment = "  Aprendí bastante  ";
     component.rating = 4;
@@ -94,7 +94,7 @@ describe("Reseñas de Comunidad", () => {
     expect(component.comment).toBe("");
   });
   it("un fallo al publicar conserva el texto y permite reintentar", async () => {
-    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    session.account.set({ id: 7, nombre: "Usuario 7", email: "usuario7@example.invalid", activo: true, roles: ["ESTUDIANTE"], fechaCreacion: "2026-01-01T00:00:00Z" });
     api.publish.mockReturnValue(throwError(() => ({ status: 503 })));
     const { component, harness, root } = await open();
     component.comment = "Mi experiencia";
@@ -105,7 +105,7 @@ describe("Reseñas de Comunidad", () => {
     expect(root.querySelector('[role="alert"]')).toBeTruthy();
   });
   it("bloquea doble publicación mientras la primera está pendiente", async () => {
-    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    session.account.set({ id: 7, nombre: "Usuario 7", email: "usuario7@example.invalid", activo: true, roles: ["ESTUDIANTE"], fechaCreacion: "2026-01-01T00:00:00Z" });
     api.publish.mockReturnValue(new Subject<Review>());
     const { component } = await open();
     component.publish();
@@ -113,7 +113,7 @@ describe("Reseñas de Comunidad", () => {
     expect(api.publish).toHaveBeenCalledOnce();
   });
   it("el admin encuentra moderación y el motivo es obligatorio", async () => {
-    session.account.set({ id: 2, rol: "ADMIN" });
+    session.account.set({ id: 2, nombre: "Usuario 2", email: "usuario2@example.invalid", activo: true, roles: ["MODERADOR_COMUNIDAD"], fechaCreacion: "2026-01-01T00:00:00Z" });
     const { root, harness } = await open();
     expect(root.querySelector(".composer")).toBeNull();
     (root.querySelector(".moderation-toggle") as HTMLButtonElement).click();
@@ -141,7 +141,7 @@ describe("Reseñas de Comunidad", () => {
     expect(root.textContent).toContain("El motivo quedó registrado");
   });
   it("un error al moderar mantiene visible el comentario", async () => {
-    session.account.set({ id: 2, rol: "ADMIN" });
+    session.account.set({ id: 2, nombre: "Usuario 2", email: "usuario2@example.invalid", activo: true, roles: ["MODERADOR_COMUNIDAD"], fechaCreacion: "2026-01-01T00:00:00Z" });
     api.hide.mockReturnValue(throwError(() => ({ status: 503 })));
     const { root, harness } = await open();
     (root.querySelector(".moderation-toggle") as HTMLButtonElement).click();
@@ -198,7 +198,7 @@ describe("Reseñas de Comunidad", () => {
     expect(component.data()?.total).toBe(2);
   });
   it("permite editar la reseña propia sin publicar una segunda", async () => {
-    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    session.account.set({ id: 7, nombre: "Usuario 7", email: "usuario7@example.invalid", activo: true, roles: ["ESTUDIANTE"], fechaCreacion: "2026-01-01T00:00:00Z" });
     api.mine.mockReturnValue(of({ ...page().items[0], oculta: false }));
     const { component, harness, root } = await open();
     expect(root.textContent).toContain("Ya compartiste tu experiencia");
@@ -217,7 +217,7 @@ describe("Reseñas de Comunidad", () => {
     expect(root.textContent).toContain("Tu reseña fue actualizada");
   });
   it("un fallo consultando la propia impide duplicarla y permite recuperar", async () => {
-    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    session.account.set({ id: 7, nombre: "Usuario 7", email: "usuario7@example.invalid", activo: true, roles: ["ESTUDIANTE"], fechaCreacion: "2026-01-01T00:00:00Z" });
     api.mine.mockReturnValueOnce(throwError(() => ({ status: 503 })));
     const { component, harness, root } = await open();
     component.publish();
@@ -228,7 +228,7 @@ describe("Reseñas de Comunidad", () => {
     expect(root.querySelector(".composer")).toBeTruthy();
   });
   it("cambiar de sesión descarta una respuesta privada pendiente", async () => {
-    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    session.account.set({ id: 7, nombre: "Usuario 7", email: "usuario7@example.invalid", activo: true, roles: ["ESTUDIANTE"], fechaCreacion: "2026-01-01T00:00:00Z" });
     const pending = new Subject();
     api.mine.mockReturnValueOnce(pending);
     const { component, harness } = await open();

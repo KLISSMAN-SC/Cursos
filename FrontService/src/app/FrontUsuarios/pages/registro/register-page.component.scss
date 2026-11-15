@@ -1,0 +1,15 @@
+.register-panel { max-width: 520px; margin: 3.5rem auto; padding: clamp(1.25rem, 5vw, 2.5rem); }
+h1 { font-family: Georgia, serif; font-size: clamp(2rem, 5vw, 2.5rem); font-weight: 400; color: var(--ink); margin: 1rem 0; }
+p { line-height: 1.65; }
+form { margin-top: 1.5rem; }
+fieldset { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 1rem; }
+.register-field { display: grid; gap: .4rem; }
+.register-field label { font-weight: 600; font-size: .9rem; }
+.register-field input { box-sizing: border-box; width: 100%; border: 1px solid #d8e1d4; border-radius: 9px; background: white; color: var(--ink); padding: .8rem .9rem; font: inherit; }
+.register-field input:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+.register-field input[aria-invalid="true"] { border-color: #a53e37; }
+.register-field .error-message { margin: 0; font-size: .8rem; }
+.primary-button { width: 100%; margin-top: .5rem; }
+.register-link { display: block; text-align: center; box-sizing: border-box; text-decoration: none; }
+.register-footer { margin-top: 1.5rem; text-align: center; font-size: .9rem; }
+.register-footer a { color: var(--forest); font-weight: 600; }

@@ -63,7 +63,7 @@
           ↻ Actualizar
         </button>
       </div>
-      @if (session.account()?.rol === "ESTUDIANTE") {
+      @if ((session.account()?.roles.includes("ESTUDIANTE") ?? false)) {
         @if (ownLoading()) {
           <p class="guest-note" role="status">Consultando tu reseña…</p>
         } @else if (ownError()) {
@@ -173,7 +173,7 @@
             }
           </form>
         }
-      } @else if (session.account()?.rol === "ADMIN") {
+      } @else if ((session.account()?.roles.includes("MODERADOR_COMUNIDAD") ?? false)) {
         <div class="moderator-note">
           <span aria-hidden="true">◇</span>
           <p>
@@ -209,7 +209,7 @@
         @for (review of page.items; track review.id) {
           <app-review-card
             [review]="review"
-            [admin]="session.account()?.rol === 'ADMIN'"
+            [admin]="(session.account()?.roles.includes('MODERADOR_COMUNIDAD') ?? false)"
             (hidden)="reviewHidden()"
           />
         } @empty {

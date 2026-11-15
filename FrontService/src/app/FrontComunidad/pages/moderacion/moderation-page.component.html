@@ -3,7 +3,7 @@
   <h1>Un espacio de aprendizaje<br /><em>empieza con respeto.</em></h1>
   <p>Revisa las reseñas y consulta el historial de moderación.</p>
 </header>
-@if (session.account()?.rol !== "ADMIN") {
+@if (!(session.account()?.roles.includes("MODERADOR_COMUNIDAD") ?? false)) {
   <section class="panel state">
     <h2>Acceso para administradores</h2>
     <p>

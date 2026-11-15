@@ -1,0 +1,33 @@
+<section class="panel login-panel">
+  <p class="eyebrow">BIENVENIDO A AULABREVE</p>
+  @if (session.status() === "loading") {
+    <h1>Verificando sesión...</h1>
+    <p role="status">Estamos comprobando tu identidad.</p>
+  } @else if (session.account(); as cuenta) {
+    <h1>Hola, {{ cuenta.nombre }}</h1>
+    <p>Has iniciado sesión correctamente.</p>
+    <div class="account-information">
+      <p><strong>ID:</strong> {{ cuenta.id }}</p>
+      <p><strong>Correo:</strong> {{ cuenta.email }}</p>
+      <p><strong>Roles:</strong></p>
+      @for (rol of cuenta.roles; track rol) {
+        <span class="role-label">{{ rol }}</span>
+      }
+    </div>
+    <button class="secondary-button" (click)="session.logout()">Cerrar sesión</button>
+  } @else {
+    <h1>Inicia sesión</h1>
+    <p>Ingresa a tu cuenta para continuar aprendiendo.</p>
+    @if (session.status() === "unavailable") {
+      <button class="secondary-button" (click)="session.restore()">Volver a intentar</button>
+    }
+    <button class="primary-button" (click)="session.login()">Iniciar sesión</button>
+    <p class="register-link">
+    ¿Todavía no tienes una cuenta?
+    <a routerLink="/usuarios/registro">Regístrate aquí</a>
+    </p>
+  }
+  @if (session.error()) {
+    <p class="error-message" role="alert">{{ session.error() }}</p>
+  }
+</section>

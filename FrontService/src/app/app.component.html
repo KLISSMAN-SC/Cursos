@@ -1,48 +1,38 @@
 <a class="skip-link" href="#main-content">Saltar al contenido</a>
 <header class="site-header">
   <div class="header-content">
-    <a routerLink="/" class="brand" aria-label="AulaBreve, inicio"
-      ><span class="brand-mark" aria-hidden="true">a</span
-      ><span><strong>AulaBreve</strong><small>aprende algo hoy</small></span></a
-    >
+    <a routerLink="/" class="brand" aria-label="AulaBreve, inicio">
+      <span class="brand-mark" aria-hidden="true">a</span>
+      <span><strong>AulaBreve</strong><small>aprende algo hoy</small></span>
+    </a>
     <nav aria-label="Navegación principal">
-      <a routerLinkActive="active" routerLink="/comunidad/cursos/1"
-        >Comunidad</a
-      >
-      @if (session.account()?.rol === "ESTUDIANTE") {
-        <a routerLinkActive="active" routerLink="/comunidad/logros"
-          >Mis logros</a
-        >
+      <a routerLinkActive="active" routerLink="/comunidad/cursos/1">Comunidad</a>
+      @if (session.hasRole("ESTUDIANTE")) {
+        <a routerLinkActive="active" routerLink="/comunidad/logros">Mis logros</a>
       }
-      @if (session.account()?.rol === "ADMIN") {
-        <a routerLinkActive="active" routerLink="/comunidad/moderacion"
-          >Moderación</a
-        >
+      @if (session.hasRole("MODERADOR_COMUNIDAD")) {
+        <a routerLinkActive="active" routerLink="/comunidad/moderacion">Moderación</a>
       }
     </nav>
     <div class="account-area">
       @if (session.account(); as account) {
-        <span class="account-label">{{
-          account.rol === "ADMIN"
-            ? "Administrador"
-            : "Estudiante #" + account.id
-        }}</span
-        ><button class="text-button" (click)="session.logout()">Salir</button>
+        <span class="account-label">{{ account.nombre }}</span>
+        <a class="text-button" routerLink="/usuarios/ingreso">Mi cuenta</a>
+        <button class="text-button" (click)="session.logout()">Salir</button>
+      } @else if (session.status() === "loading") {
+        <span class="account-label muted">Verificando sesión…</span>
       } @else {
-        <span class="account-label muted">Explora y comparte</span>
-      }
-      @if (localSessions) {
-        <a class="dev-link" routerLink="/desarrollo/sesion">Sesión de prueba</a>
+        <a class="text-button" routerLink="/usuarios/ingreso">Iniciar sesión</a>
+        <a class="text-button" routerLink="/usuarios/registro">Registrarse</a>
       }
     </div>
   </div>
 </header>
 <main id="main-content" class="page-container"><router-outlet /></main>
 <footer class="site-footer">
-  <a class="brand footer-brand" routerLink="/"
-    ><span class="brand-mark" aria-hidden="true">a</span
-    ><strong>AulaBreve</strong></a
-  >
+  <a class="brand footer-brand" routerLink="/">
+    <span class="brand-mark" aria-hidden="true">a</span><strong>AulaBreve</strong>
+  </a>
   <p>Un poco cada día también es progreso.</p>
   <span>Hecho para aprender juntos.</span>
 </footer>

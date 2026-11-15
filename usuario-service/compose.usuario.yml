@@ -1,0 +1,48 @@
+
+services:
+
+  usuario-db:
+    image: postgres:17-alpine
+
+    environment:
+      POSTGRES_DB: usuarios_db
+      POSTGRES_USER: usuario_app
+      POSTGRES_PASSWORD: ${USUARIO_DB_PASSWORD:?Configura USUARIO_DB_PASSWORD}
+
+    ports:
+      - "127.0.0.1:5433:5432"
+
+    volumes:
+      - usuario_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U usuario_app -d usuarios_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  usuario-service:
+    build: .
+
+    environment:
+      DB_HOST: usuario-db
+      DB_PORT: 5432
+      DB_NAME: usuarios_db
+      DB_USER: usuario_app
+      DB_PASSWORD: ${USUARIO_DB_PASSWORD:?Configura USUARIO_DB_PASSWORD}
+
+      AUTH_KEYSTORE_PATH: /run/aulabreve/secrets/usuario-signing.p12
+      AUTH_KEYSTORE_PASSWORD: ${AUTH_KEYSTORE_PASSWORD:?Configura AUTH_KEYSTORE_PASSWORD}
+
+    ports:
+      - "127.0.0.1:8081:8081"
+
+    volumes:
+      - ./.secrets:/run/aulabreve/secrets:ro
+
+    depends_on:
+      usuario-db:
+        condition: service_healthy
+
+volumes:
+  usuario_data:

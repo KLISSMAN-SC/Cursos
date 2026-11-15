@@ -1,0 +1,47 @@
+<section class="panel register-panel">
+  <p class="eyebrow">TU PRÓXIMO PASO EMPIEZA AQUÍ</p>
+  @if (success()) {
+    <h1>¡Tu cuenta está lista!</h1>
+    <p role="status">Tu cuenta de estudiante se creó correctamente. Ya puedes iniciar sesión.</p>
+    <a class="primary-button register-link" routerLink="/usuarios/ingreso">Iniciar sesión</a>
+  } @else {
+    <h1>Crea tu cuenta</h1>
+    <p class="muted">Aprende a tu ritmo y descubre nuevas oportunidades.</p>
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <fieldset [disabled]="busy()">
+        <div class="register-field">
+          <label for="registro-nombre">Nombre completo</label>
+          <input id="registro-nombre" formControlName="nombre" autocomplete="name" maxlength="120" placeholder="Escribe tu nombre" required [attr.aria-invalid]="submitted() && fields.nombre.invalid" />
+          @if (submitted() && fields.nombre.invalid) {
+            <p class="error-message">Ingresa un nombre válido de hasta 120 caracteres.</p>
+          }
+        </div>
+        <div class="register-field">
+          <label for="registro-email">Correo electrónico</label>
+          <input id="registro-email" type="email" formControlName="email" autocomplete="email" maxlength="254" placeholder="nombre@ejemplo.com" required [attr.aria-invalid]="submitted() && fields.email.invalid" />
+          @if (submitted() && fields.email.invalid) {
+            <p class="error-message">Ingresa un correo electrónico válido.</p>
+          }
+        </div>
+        <div class="register-field">
+          <label for="registro-password">Contraseña</label>
+          <input id="registro-password" type="password" formControlName="password" autocomplete="new-password" required aria-describedby="registro-password-ayuda" [attr.aria-invalid]="submitted() && fields.password.invalid" />
+          <small id="registro-password-ayuda" class="muted">De 12 a 72 caracteres, con un máximo de 72 bytes.</small>
+          @if (submitted() && fields.password.invalid) {
+            <p class="error-message">Usa una contraseña válida de al menos 12 caracteres y máximo 72 bytes.</p>
+          }
+        </div>
+        <div class="register-field">
+          <label for="registro-confirmacion">Confirmar contraseña</label>
+          <input id="registro-confirmacion" type="password" formControlName="confirmacion" autocomplete="new-password" required [attr.aria-invalid]="submitted() && (fields.confirmacion.invalid || form.hasError('noCoinciden'))" />
+          @if (submitted() && (fields.confirmacion.invalid || form.hasError("noCoinciden"))) {
+            <p class="error-message">Las contraseñas deben coincidir.</p>
+          }
+        </div>
+        <button class="primary-button" type="submit" [disabled]="busy()">{{ busy() ? "Creando cuenta…" : "Crear mi cuenta" }}</button>
+      </fieldset>
+      @if (error()) { <p class="error-message" role="alert">{{ error() }}</p> }
+    </form>
+    <p class="register-footer">¿Ya tienes una cuenta? <a routerLink="/usuarios/ingreso">Inicia sesión</a></p>
+  }
+</section>

@@ -56,9 +56,13 @@ export class ReviewsPage implements OnInit, OnDestroy {
       this.editing.set(false);
       this.comment = "";
       this.rating = 5;
-      if (course && account?.rol === "ESTUDIANTE")
-        this.loadOwn(course, account.id);
-      else this.ownLoading.set(false);
+      if (course && account && account.roles.includes("ESTUDIANTE")) {
+    this.loadOwn(course, account.id);
+    } else {
+    this.own.set(null);
+    this.ownLoading.set(false);
+    }
+      
     });
   }
   loadOwn(
@@ -66,7 +70,7 @@ export class ReviewsPage implements OnInit, OnDestroy {
     student = this.session.account()?.id,
   ): void {
     this.ownRequest?.unsubscribe();
-    if (!course || !student || this.session.account()?.rol !== "ESTUDIANTE")
+    if (!course || !student || !(this.session.account()?.roles.includes("ESTUDIANTE") ?? false))
       return;
     this.ownLoading.set(true);
     this.ownError.set("");
@@ -144,7 +148,7 @@ export class ReviewsPage implements OnInit, OnDestroy {
   }
   publish(): void {
     if (
-      this.session.account()?.rol !== "ESTUDIANTE" ||
+      !(this.session.account()?.roles.includes("ESTUDIANTE") ?? false) ||
       this.posting() ||
       !this.courseId() ||
       this.ownLoading() ||
