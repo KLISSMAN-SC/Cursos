@@ -1,0 +1,22 @@
+.profile-page { max-width: 720px; margin: 3rem auto; }
+h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(2rem, 5vw, 3rem); color: var(--ink); margin: .75rem 0; }
+h2 { font-size: 1.2rem; margin: 0 0 .5rem; color: var(--ink); }
+p { line-height: 1.6; }
+.profile-panel { margin-top: 1.75rem; padding: clamp(1.25rem, 5vw, 2.5rem); }
+.profile-summary { display: flex; align-items: center; gap: 1rem; }
+.avatar { flex: 0 0 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; background: #e1e7dc; color: var(--forest); font: 1.5rem Georgia, serif; }
+.summary-text { min-width: 0; overflow-wrap: anywhere; }
+.summary-text p { margin: 0 0 .5rem; }
+.roles { display: flex; flex-wrap: wrap; gap: .4rem; }
+.role-label { display: inline-block; padding: .35rem .65rem; background: #e1e7dc; color: var(--forest); border-radius: 20px; font-size: .8rem; font-weight: 600; }
+hr { border: 0; border-top: 1px solid #dce3d7; margin: 1.75rem 0; }
+fieldset { border: 0; margin: 1.5rem 0 0; padding: 0; min-width: 0; display: grid; gap: 1rem; }
+.profile-field { display: grid; gap: .4rem; }
+.profile-field label { font-weight: 600; font-size: .9rem; }
+.profile-field input { box-sizing: border-box; width: 100%; border: 1px solid #d8e1d4; border-radius: 9px; background: white; color: var(--ink); padding: .8rem .9rem; font: inherit; }
+.profile-field input:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+.profile-field input[aria-invalid="true"] { border-color: #a53e37; }
+.profile-field .error-message { margin: 0; }
+.success-message { background: #edf3e9; color: #255744; border-radius: 9px; padding: .8rem; }
+.sign-in { display: inline-block; text-decoration: none; }
+@media (max-width: 420px) { .profile-summary { align-items: flex-start; } .avatar { flex-basis: 48px; height: 48px; } }

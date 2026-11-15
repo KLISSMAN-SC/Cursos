@@ -109,12 +109,29 @@ public class SecurityConfig {
     // 5. Login del Authorization Server: mantener sesion y CSRF
     @Bean
     @Order(3)
-    public SecurityFilterChain loginSecurityChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/error").permitAll()
-                        .anyRequest().authenticated())
-                .formLogin(form -> form.permitAll())
-                .logout(logout -> logout.permitAll());
+    public SecurityFilterChain loginSecurityChain(
+        HttpSecurity http) throws Exception {
+
+            http
+            .authorizeHttpRequests(auth -> auth
+
+                    .requestMatchers(
+                            "/error",
+                            "/auth-assets/login.css"
+                    ).permitAll()
+
+                    .anyRequest().authenticated()
+            )
+
+            .formLogin(form -> form
+
+                    .loginPage("/login")
+
+                    .permitAll()
+            )
+
+            .logout(logout -> logout.permitAll());
+
         return http.build();
     }
 

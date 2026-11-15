@@ -17,7 +17,7 @@
     <div class="account-area">
       @if (session.account(); as account) {
         <span class="account-label">{{ account.nombre }}</span>
-        <a class="text-button" routerLink="/usuarios/ingreso">Mi cuenta</a>
+        <a class="text-button" routerLink="/usuarios/mi-cuenta">Mi cuenta</a>
         <button class="text-button" (click)="session.logout()">Salir</button>
       } @else if (session.status() === "loading") {
         <span class="account-label muted">Verificando sesión…</span>

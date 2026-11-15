@@ -1,0 +1,143 @@
+<section class="profile-page">
+  <p class="eyebrow">TU ESPACIO EN AULABREVE</p>
+  <h1>Mi cuenta</h1>
+  <p class="muted">Gestiona tu información personal y la seguridad de tu cuenta.</p>
+  @if (session.status() === 'loading') {
+    <div class="panel"><p role="status">Verificando sesión…</p></div>
+  } @else if (session.account(); as cuenta) {
+    <div class="panel profile-panel">
+      <div class="profile-summary">
+        <span class="avatar" aria-hidden="true">{{ initials(cuenta.nombre) }}</span>
+        <div class="summary-text">
+          <h2>{{ cuenta.nombre }}</h2>
+          <p class="muted">{{ cuenta.email }}</p>
+          <div class="roles">
+            @for (rol of cuenta.roles; track rol) {
+              <span class="role-label">{{ labels[rol] }}</span>
+            }
+          </div>
+        </div>
+      </div>
+      <hr>
+      <h2>Información personal</h2>
+      <p class="muted">Puedes actualizar tu nombre y correo. Tus roles y tu ID no cambian.</p>
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <fieldset [disabled]="busy()">
+          <div class="profile-field">
+            <label for="profile-name">Nombre completo</label>
+            <input id="profile-name" formControlName="nombre" autocomplete="name" maxlength="120" [attr.aria-invalid]="fields.nombre.touched && fields.nombre.invalid">
+            @if (fields.nombre.touched && fields.nombre.invalid) {
+              <p class="error-message">Ingresa un nombre válido de hasta 120 caracteres.</p>
+            }
+          </div>
+          <div class="profile-field">
+            <label for="profile-email">Correo electrónico</label>
+            <input id="profile-email" type="email" formControlName="email" autocomplete="email" maxlength="254" [attr.aria-invalid]="fields.email.touched && fields.email.invalid">
+            @if (fields.email.touched && fields.email.invalid) {
+              <p class="error-message">Ingresa un correo electrónico válido.</p>
+            }
+          </div>
+          @if (cambiaCorreo()) {
+            <div class="profile-field">
+              <label for="profile-password">Contraseña actual</label>
+              <input id="profile-password" type="password" formControlName="passwordActual" autocomplete="current-password" maxlength="72" aria-required="true" aria-describedby="email-help">
+              <small id="email-help" class="muted">Por seguridad, confirma tu contraseña para cambiar el correo.</small>
+            </div>
+          }
+          <button class="primary-button" type="submit" [disabled]="busy()">{{ busy() ? 'Guardando…' : 'Guardar cambios' }}</button>
+        </fieldset>
+      </form>
+      @if (success()) { <p class="success-message" role="status">{{ success() }}</p> }
+      @if (error()) { <p class="error-message" role="alert">{{ error() }}</p> }
+      <hr>
+
+      <hr>
+
+    <h2>Seguridad de la cuenta</h2>
+
+    <p class="muted">
+      Actualiza tu contraseña para mantener protegida tu cuenta.
+    </p>
+
+    <form [formGroup]="passwordForm" (ngSubmit)="submitPassword()" novalidate
+    >
+      <fieldset [disabled]="passwordBusy()">
+        <div class="profile-field">
+          <label for="current-password">Contraseña actual</label>
+          <input id="current-password" type="password" formControlName="passwordActual" autocomplete="current-password" maxlength="72"
+            [attr.aria-invalid]="passwordFields.passwordActual.touched && passwordFields.passwordActual.invalid"
+          >
+          @if (passwordFields.passwordActual.touched && passwordFields.passwordActual.invalid) {
+            <p class="error-message">
+              Ingresa tu contraseña actual válida.
+            </p>
+          }
+        </div>
+        <div class="profile-field">
+          <label for="new-password">Nueva contraseña</label>
+          <input id="new-password" type=" password" formControlName="passwordNueva" autocomplete="new-password" minlength="12" maxlength="72"
+            [attr.aria-invalid]="passwordFields.passwordNueva.touched && passwordFields.passwordNueva.invalid"
+          >
+          <small class="muted">
+            Entre 12 y 72 caracteres, con un máximo de 72 bytes UTF-8.
+          </small>
+          @if (passwordFields.passwordNueva.touched) {
+            @if (passwordFields.passwordNueva.hasError('required') || passwordFields.passwordNueva.hasError('blank')) {
+              <p class="error-message">Ingresa una nueva contraseña.</p>
+            } @else if (passwordFields.passwordNueva.hasError('minlength')) {
+              <p class="error-message">La contraseña debe tener al menos 12 caracteres.</p>
+            } @else if (passwordFields.passwordNueva.hasError('maxlength')) {
+              <p class="error-message">La contraseña no debe superar 72 caracteres.</p>
+            } @else if (passwordFields.passwordNueva.hasError('maxUtf8Bytes')) {
+              <p class="error-message">La contraseña no debe superar 72 bytes UTF-8.</p>
+            }
+          }
+          @if (passwordForm.hasError('sameAsCurrent') && passwordFields.passwordNueva.touched) {
+            <p class="error-message">
+              La nueva contraseña debe ser diferente de la actual.
+            </p>
+          }
+        </div>
+        <div class="profile-field">
+          <label for="confirm-password">Confirmar nueva contraseña</label>
+
+          <input id="confirm-password" type="password"  formControlName="confirmarPassword"    autocomplete="new-password"   maxlength="72"
+            [attr.aria-invalid]="passwordFields.confirmarPassword.touched && (passwordFields.confirmarPassword.invalid || passwordForm.hasError('passwordMismatch'))"
+          >
+          @if (passwordFields.confirmarPassword.touched) {
+            @if (passwordFields.confirmarPassword.hasError('required') || passwordFields.confirmarPassword.hasError('blank')) {
+              <p class="error-message">Confirma tu nueva contraseña.</p>
+            } @else if (passwordForm.hasError('passwordMismatch')) {
+              <p class="error-message">Las contraseñas no coinciden.</p>
+            } @else if (passwordFields.confirmarPassword.hasError('maxUtf8Bytes')) {
+              <p class="error-message">La confirmación supera los 72 bytes UTF-8.</p>
+            }
+          }
+        </div>
+        <button  class="primary-button"   type="submit"  [disabled]="passwordBusy()" >
+          {{ passwordBusy() ? 'Actualizando…' : 'Actualizar contraseña' }}
+        </button>
+      </fieldset>
+    </form>
+    @if (passwordSuccess()) {
+      <p class="success-message" role="status">{{ passwordSuccess() }} </p>
+    }
+
+    @if (passwordError()) {
+      <p class="error-message" role="alert"> {{ passwordError() }}</p>
+    }
+      <button class="secondary-button" type="button" (click)="session.logout()">Cerrar sesión</button>
+    </div>
+  } @else {
+    <div class="panel profile-panel">
+      @if (session.status() === 'unavailable') {
+        <p>No pudimos comprobar tu identidad.</p>
+        <button class="secondary-button" type="button" (click)="session.restore()">Volver a intentar</button>
+      } @else {
+        <p>Inicia sesión para consultar y editar tu cuenta.</p>
+        <a class="primary-button sign-in" routerLink="/usuarios/ingreso">Iniciar sesión</a>
+      }
+      @if (session.error()) { <p class="error-message" role="alert">{{ session.error() }}</p> }
+    </div>
+  }
+</section>

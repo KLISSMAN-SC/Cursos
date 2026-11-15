@@ -26,6 +26,13 @@ export const routes: Routes = [
     import("./FrontUsuarios/pages/registro/register-page.component")
       .then((m) => m.RegisterPage),
   },
+  {
+  path: "usuarios/mi-cuenta",
+  loadComponent: () =>
+    import(
+      "./FrontUsuarios/pages/mi-cuenta/profile-page.component"
+    ).then((m) => m.ProfilePage),
+  },
   { path: "desarrollo/sesion", pathMatch: "full", redirectTo: "usuarios/ingreso" },
   { path: "**", redirectTo: "comunidad/cursos/1" },
 ];

@@ -1,0 +1,49 @@
+/* Identidad visual compartida de AulaBreve. Sin recursos externos. */
+:root {
+    color-scheme: light;
+    --forest: #2f6c55;
+    --ink: #23382e;
+    --muted: #657260;
+    --border: #dce3d7;
+    --background: #f7f8f3;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--ink);
+    background: var(--background);
+    font-size: 16px;
+    line-height: 1.55;
+}
+.site-header { background: white; border-bottom: 1px solid var(--border); }
+.header-inner { max-width: 1260px; margin: auto; padding: 24px 32px; }
+.brand { display: inline-flex; gap: 12px; align-items: center; color: var(--ink); text-decoration: none; }
+.brand-mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; background: var(--forest); color: white; font: bold 38px/1 Georgia, serif; transform: rotate(-7deg); }
+.brand strong { display: block; font-size: 20px; line-height: 1.2; }
+.brand small { display: block; color: var(--muted); font-size: 11px; }
+.auth-main { flex: 1; display: grid; justify-items: center; align-content: start; padding: 64px 20px; }
+.login-panel { background: #fff; border: 1px solid var(--border); border-radius: 20px; padding: 42px; width: min(100%, 572px); }
+.eyebrow { color: var(--forest); letter-spacing: .13em; font-size: 11px; font-weight: 700; margin: 0 0 16px; }
+h1 { font: 400 clamp(32px, 5vw, 44px)/1.15 Georgia, serif; margin: 0 0 20px; }
+.intro { color: var(--muted); margin: 0 0 26px; }
+.field { margin-bottom: 18px; }
+label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+input { display: block; width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 13px 15px; font: inherit; color: var(--ink); background: white; }
+input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid #83ae9b; outline-offset: 3px; }
+.primary-button { border: 0; border-radius: 10px; width: 100%; background: var(--forest); color: white; font: 700 14px Arial, sans-serif; padding: 15px 20px; cursor: pointer; margin-top: 6px; }
+.primary-button:hover { background: #245640; }
+.register-link { border-top: 1px solid var(--border); text-align: center; font-size: 14px; padding-top: 20px; margin: 26px 0 0; }
+.register-link a { color: var(--forest); font-weight: 700; }
+.notice { padding: 12px 14px; border-radius: 9px; font-size: 14px; margin: 0 0 18px; }
+.error { color: #9d2822; background: #fff1ef; }
+.success { color: #245640; background: #e9f2e8; }
+.site-footer { text-align: center; border-top: 1px solid var(--border); padding: 25px 16px; color: var(--muted); font-size: 12px; }
+@media (max-width: 560px) {
+    .header-inner { padding: 20px; }
+    .auth-main { padding: 32px 16px; }
+    .login-panel { padding: 26px; }
+}

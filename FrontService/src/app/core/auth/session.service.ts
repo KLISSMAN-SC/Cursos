@@ -147,8 +147,19 @@ export class Session {
   }
 
   private finishCallback(callback: boolean): void {
-    if (callback) void this.router.navigateByUrl("/usuarios/ingreso", { replaceUrl: true });
+  if (callback) {
+
+    const target =
+      this.status() === "ready"
+        ? "/usuarios/mi-cuenta"
+        : "/usuarios/ingreso";
+
+    void this.router.navigateByUrl(
+      target,
+      { replaceUrl: true }
+    );
   }
+}
 
   // Solo lee exp para programar el cierre visual; la API valida la firma y los permisos.
   private tokenExpiration(token: string): number {
@@ -185,4 +196,27 @@ export class Session {
     this.identity.set(null);
     this.phase.set("guest");
   }
+  aplicarPerfilActualizado(
+  account: Account,
+  expectedToken: string
+): boolean {
+
+  const token = this.accessToken();
+  const current = this.account();
+
+  if (
+    !token ||
+    token !== expectedToken ||
+    !current ||
+    !account.activo ||
+    account.id !== current.id ||
+    !Array.isArray(account.roles)
+  ) {
+    return false;
+  }
+
+  this.identity.set(account);
+
+  return true;
+}
 }
