@@ -6,7 +6,19 @@
       ><span><strong>AulaBreve</strong><small>aprende algo hoy</small></span></a
     >
     <nav aria-label="Navegación principal">
-      <a class="active" routerLink="/comunidad/cursos/1">Comunidad</a>
+      <a routerLinkActive="active" routerLink="/comunidad/cursos/1"
+        >Comunidad</a
+      >
+      @if (session.account()?.rol === "ESTUDIANTE") {
+        <a routerLinkActive="active" routerLink="/comunidad/logros"
+          >Mis logros</a
+        >
+      }
+      @if (session.account()?.rol === "ADMIN") {
+        <a routerLinkActive="active" routerLink="/comunidad/moderacion"
+          >Moderación</a
+        >
+      }
     </nav>
     <div class="account-area">
       @if (session.account(); as account) {

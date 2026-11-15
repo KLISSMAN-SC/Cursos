@@ -1,13 +1,23 @@
 # ComunidadService
 
-API FastAPI/PostgreSQL de reseñas, con validación JWT y moderación auditada.
+API FastAPI/PostgreSQL de reseñas, moderación auditada, insignias y puntos.
 Frontend asociado: FrontService/src/app/FrontComunidad/.
+
+Esta continuación se desarrolla en feat/comunidad-completa a partir de
+feat/comunidad-resenas. Empieza con la [guía de Comunidad completa](docs/COMUNIDAD_COMPLETA.md):
+incluye actualización conservando la base, migración de datos, laboratorio Docker,
+eventos de Progreso y pasos para exponer. Los contratos reales se encuentran en
+[docs/contratos/ComunidadService.md](../docs/contratos/ComunidadService.md).
 
 | Función | API | Pantalla |
 | --- | --- | --- |
 | Consultar reseñas y resumen | GET /api/v1/resenas?curso_id=1 | Reseñas del curso, público |
 | Publicar reseña | POST /api/v1/resenas | Formulario de alumno |
+| Consultar/editar la propia | GET /api/v1/resenas/mia y PATCH /api/v1/resenas/{id} | Editar mi reseña |
 | Ocultar reseña con motivo | PATCH /api/v1/resenas/{id}/ocultar | Acción del administrador en la tarjeta |
+| Consultar historial de moderación | GET /api/v1/admin/resenas | /comunidad/moderacion |
+| Consultar puntos e insignias | GET /api/v1/mis-logros | /comunidad/logros |
+| Recibir ModuloCompletado | Consumidor AMQP independiente | Mis logros actualizado |
 | Comprobar identidad | GET /api/v1/sesion | Sesión compartida de FrontService |
 | Estado y conexión | GET /health y GET /health/db | Documentación /docs |
 
@@ -15,6 +25,9 @@ Frontend asociado: FrontService/src/app/FrontComunidad/.
 
 Desde ComunidadService, copiar .env.example a .env solo si aún no tienes .env y
 cambiar COMUNIDAD_DB_PASSWORD. Docker no necesita PostgreSQL instalado en Windows.
+Para una demostración antes de integrar Catálogo, seguir el compose.demo.yaml de
+la guía completa. El compose normal exige configurar la verificación de derechos
+real para poder publicar/editar; no concede acceso automáticamente.
 
 ```powershell
 docker compose build comunidadservice
@@ -71,5 +84,7 @@ La comprobación real de PostgreSQL debe realizarse levantando el compose.
 - scripts: herramienta local de sesiones, sin endpoint de autenticación ficticia.
 - tests: permisos, datos, errores, persistencia y migraciones.
 
-Pendientes: puntos/logros, eventos de ProgresoService y conexión definitiva con
-UsuarioService, Catálogo y las reglas acordadas de elegibilidad para reseñar.
+Implementados puntos/logros y consumo de eventos, con deduplicación por UUID y
+por hito. Pendiente de integración del equipo: identidad real de UsuarioService,
+endpoint de derechos de Catálogo y outbox/productor de ProgresoService. El doble
+de Catálogo y el publicador de laboratorio se usan solo en la demostración.

@@ -1,13 +1,14 @@
 # FrontService
 
 Una aplicación Angular compartida. El workspace está inicializado y FrontComunidad
-incluye la consulta, publicación y moderación de reseñas. Las carpetas de los demás
+incluye consulta, publicación y edición de reseñas, historial de moderación y
+Mis logros con insignias/puntos. Las carpetas de los demás
 integrantes se conservan para sus propias áreas.
 
 ## Arranque con Docker
 
 Usar el compose de ComunidadService con el perfil front, siguiendo
-[la guía de reseñas](../ComunidadService/docs/RESENAS.md). Abrir http://localhost:4200.
+[la guía completa](../ComunidadService/docs/COMUNIDAD_COMPLETA.md). Abrir http://localhost:4200.
 El proxy de Nginx conecta /api/comunidad/ con ComunidadService dentro de Docker.
 
 ## Desarrollo local
@@ -34,7 +35,7 @@ por defecto; el compose de pruebas elige local explícitamente.
 
 ## Reparto
 
-- src/app/FrontComunidad: API, tipos, resumen, tarjetas y página de reseñas.
+- src/app/FrontComunidad: API, tipos, resumen, tarjetas, reseñas, logros y moderación.
 - src/app/FrontUsuarios: reservada para el responsable de usuarios.
 - src/app/FrontCatalogo: reservada para Catálogo.
 - src/app/FrontPagos: reservada para Pagos.

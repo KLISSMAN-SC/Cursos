@@ -4,6 +4,7 @@ import {
   OnDestroy,
   OnInit,
   inject,
+  effect,
   signal,
 } from "@angular/core";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
@@ -14,7 +15,7 @@ import { Session } from "../../../core/auth/session.service";
 import { environment } from "../../../../environments/environment";
 import { RatingSummary } from "../../components/rating-summary.component";
 import { ReviewCard } from "../../components/review-card.component";
-import { ReviewPage } from "../../models/review";
+import { OwnReview, ReviewPage } from "../../models/review";
 import { CommunityApi } from "../../services/community-api.service";
 import { communityError } from "../../services/community-error";
 @Component({
@@ -37,9 +38,69 @@ export class ReviewsPage implements OnInit, OnDestroy {
   readonly error = signal("");
   readonly formError = signal("");
   readonly notice = signal("");
+  readonly own = signal<OwnReview | null>(null);
+  readonly ownLoading = signal(false);
+  readonly ownError = signal("");
+  readonly editing = signal(false);
   rating = 5;
   comment = "";
   private loadRequest?: Subscription;
+  private ownRequest?: Subscription;
+  constructor() {
+    effect(() => {
+      const course = this.courseId();
+      const account = this.session.account();
+      this.ownRequest?.unsubscribe();
+      this.own.set(null);
+      this.ownError.set("");
+      this.editing.set(false);
+      this.comment = "";
+      this.rating = 5;
+      if (course && account?.rol === "ESTUDIANTE")
+        this.loadOwn(course, account.id);
+      else this.ownLoading.set(false);
+    });
+  }
+  loadOwn(
+    course = this.courseId(),
+    student = this.session.account()?.id,
+  ): void {
+    this.ownRequest?.unsubscribe();
+    if (!course || !student || this.session.account()?.rol !== "ESTUDIANTE")
+      return;
+    this.ownLoading.set(true);
+    this.ownError.set("");
+    this.ownRequest = this.api.mine(course).subscribe({
+      next: (review) => {
+        if (
+          course !== this.courseId() ||
+          student !== this.session.account()?.id
+        )
+          return;
+        this.own.set(review);
+        this.ownLoading.set(false);
+      },
+      error: (error) => {
+        if (
+          course !== this.courseId() ||
+          student !== this.session.account()?.id
+        )
+          return;
+        this.ownLoading.set(false);
+        this.ownError.set(
+          communityError(error, "No pudimos consultar tu reseña."),
+        );
+      },
+    });
+  }
+  beginEdit(): void {
+    const review = this.own();
+    if (!review || review.oculta || this.posting()) return;
+    this.rating = review.calificacion;
+    this.comment = review.comentario || "";
+    this.formError.set("");
+    this.editing.set(true);
+  }
   ngOnInit(): void {
     this.route.paramMap
       .pipe(takeUntilDestroyed(this.destroy))
@@ -85,7 +146,10 @@ export class ReviewsPage implements OnInit, OnDestroy {
     if (
       this.session.account()?.rol !== "ESTUDIANTE" ||
       this.posting() ||
-      !this.courseId()
+      !this.courseId() ||
+      this.ownLoading() ||
+      this.ownError() ||
+      (this.own() && !this.own()?.oculta && !this.editing())
     )
       return;
     if (
@@ -100,35 +164,54 @@ export class ReviewsPage implements OnInit, OnDestroy {
       return;
     }
     const course = this.courseId();
+    const student = this.session.account()?.id;
+    const editing = this.editing();
     this.posting.set(true);
     this.formError.set("");
     this.notice.set("");
-    this.api
-      .publish({
-        curso_id: course,
-        calificacion: this.rating,
-        comentario: this.comment.trim() || null,
-      })
-      .pipe(takeUntilDestroyed(this.destroy))
-      .subscribe({
-        next: () => {
-          this.posting.set(false);
-          if (course !== this.courseId()) return;
-          this.comment = "";
-          this.rating = 5;
-          this.notice.set(
-            "Gracias por compartir tu experiencia. Tu reseña ya está publicada.",
-          );
-          this.load();
-        },
-        error: (error) => {
-          this.posting.set(false);
-          if (course !== this.courseId()) return;
-          this.formError.set(
-            communityError(error, "No pudimos publicar tu reseña."),
-          );
-        },
-      });
+    const input = {
+      curso_id: course,
+      calificacion: this.rating,
+      comentario: this.comment.trim() || null,
+    };
+    const request =
+      editing && this.own()
+        ? this.api.edit(this.own()!.id, {
+            calificacion: input.calificacion,
+            comentario: input.comentario,
+          })
+        : this.api.publish(input);
+    request.pipe(takeUntilDestroyed(this.destroy)).subscribe({
+      next: () => {
+        this.posting.set(false);
+        if (
+          course !== this.courseId() ||
+          student !== this.session.account()?.id
+        )
+          return;
+        this.comment = "";
+        this.rating = 5;
+        this.notice.set(
+          editing
+            ? "Tu reseña fue actualizada."
+            : "Gracias por compartir tu experiencia. Tu reseña ya está publicada.",
+        );
+        this.editing.set(false);
+        this.loadOwn();
+        this.load();
+      },
+      error: (error) => {
+        this.posting.set(false);
+        if (
+          course !== this.courseId() ||
+          student !== this.session.account()?.id
+        )
+          return;
+        this.formError.set(
+          communityError(error, "No pudimos publicar tu reseña."),
+        );
+      },
+    });
   }
   reviewHidden(): void {
     const current = this.data();
@@ -141,5 +224,6 @@ export class ReviewsPage implements OnInit, OnDestroy {
   }
   ngOnDestroy(): void {
     this.loadRequest?.unsubscribe();
+    this.ownRequest?.unsubscribe();
   }
 }

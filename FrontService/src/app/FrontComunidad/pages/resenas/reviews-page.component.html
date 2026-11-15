@@ -64,68 +64,124 @@
         </button>
       </div>
       @if (session.account()?.rol === "ESTUDIANTE") {
-        <form
-          class="panel composer"
-          (ngSubmit)="publish()"
-          [attr.aria-busy]="posting()"
-        >
-          <div class="composer-heading">
-            <span class="composer-icon" aria-hidden="true">✎</span>
-            <div>
-              <h3>¿Cómo fue tu experiencia?</h3>
-              <p>Tu opinión ayuda a que sigamos aprendiendo.</p>
-            </div>
-          </div>
-          <div class="rating-field">
-            <label for="rating">Tu calificación</label
-            ><select
-              id="rating"
-              name="rating"
-              [(ngModel)]="rating"
-              [disabled]="posting()"
-            >
-              <option [ngValue]="5">★★★★★ · Excelente</option>
-              <option [ngValue]="4">★★★★☆ · Muy bueno</option>
-              <option [ngValue]="3">★★★☆☆ · Bueno</option>
-              <option [ngValue]="2">★★☆☆☆ · Puede mejorar</option>
-              <option [ngValue]="1">★☆☆☆☆ · No era lo que esperaba</option>
-            </select>
-          </div>
-          <label for="comment"
-            >Comparte algo que te haya servido
-            <span class="optional">(opcional)</span></label
-          ><textarea
-            id="comment"
-            name="comment"
-            [(ngModel)]="comment"
-            maxlength="2000"
-            rows="4"
-            placeholder="¿Qué aprendiste? ¿Qué te gustaría que otros supieran?"
-            [disabled]="posting()"
-            aria-describedby="comment-help"
-          ></textarea>
-          <div class="composer-footer">
-            <small id="comment-help"
-              >{{ comment.length }}/2000 · Comparte con respeto.</small
-            ><button
-              class="primary-button"
-              type="submit"
-              [disabled]="posting()"
-            >
-              {{ posting() ? "Publicando…" : "Publicar reseña" }}
-              <span aria-hidden="true">↗</span>
+        @if (ownLoading()) {
+          <p class="guest-note" role="status">Consultando tu reseña…</p>
+        } @else if (ownError()) {
+          <div class="panel">
+            <p class="error-message" role="alert">{{ ownError() }}</p>
+            <button class="secondary-button" (click)="loadOwn()">
+              Reintentar
             </button>
           </div>
-          @if (formError()) {
-            <p class="error-message" role="alert">{{ formError() }}</p>
+        } @else if (own() && !own()?.oculta && !editing()) {
+          <div class="panel">
+            <h3>Ya compartiste tu experiencia</h3>
+            <p>
+              Tu calificación: {{ own()?.calificacion }} de 5. Puedes actualizar
+              tu reseña.
+            </p>
+            <button class="secondary-button" (click)="beginEdit()">
+              Editar mi reseña
+            </button>
+          </div>
+        } @else {
+          @if (own()?.oculta) {
+            <p class="guest-note">
+              Tu reseña anterior fue ocultada por moderación. Puedes compartir
+              una nueva experiencia respetuosa.
+            </p>
           }
-        </form>
+          <form
+            class="panel composer"
+            (ngSubmit)="publish()"
+            [attr.aria-busy]="posting()"
+          >
+            <div class="composer-heading">
+              <span class="composer-icon" aria-hidden="true">✎</span>
+              <div>
+                <h3>
+                  {{
+                    editing()
+                      ? "Actualiza tu experiencia"
+                      : "¿Cómo fue tu experiencia?"
+                  }}
+                </h3>
+                <p>
+                  Una reseña activa por estudiante y curso. Necesitas acceso
+                  vigente.
+                </p>
+              </div>
+            </div>
+            <div class="rating-field">
+              <label for="rating">Tu calificación</label
+              ><select
+                id="rating"
+                name="rating"
+                [(ngModel)]="rating"
+                [disabled]="posting()"
+              >
+                <option [ngValue]="5">★★★★★ · Excelente</option>
+                <option [ngValue]="4">★★★★☆ · Muy bueno</option>
+                <option [ngValue]="3">★★★☆☆ · Bueno</option>
+                <option [ngValue]="2">★★☆☆☆ · Puede mejorar</option>
+                <option [ngValue]="1">★☆☆☆☆ · No era lo que esperaba</option>
+              </select>
+            </div>
+            <label for="comment"
+              >Comparte algo que te haya servido
+              <span class="optional">(opcional)</span></label
+            ><textarea
+              id="comment"
+              name="comment"
+              [(ngModel)]="comment"
+              maxlength="2000"
+              rows="4"
+              placeholder="¿Qué aprendiste? ¿Qué te gustaría que otros supieran?"
+              [disabled]="posting()"
+              aria-describedby="comment-help"
+            ></textarea>
+            <div class="composer-footer">
+              <small id="comment-help"
+                >{{ comment.length }}/2000 · Comparte con respeto.</small
+              ><button
+                class="primary-button"
+                type="submit"
+                [disabled]="posting()"
+              >
+                {{
+                  posting()
+                    ? "Guardando…"
+                    : editing()
+                      ? "Guardar cambios"
+                      : "Publicar reseña"
+                }}
+                <span aria-hidden="true">↗</span>
+              </button>
+            </div>
+            @if (editing()) {
+              <button
+                class="text-button"
+                type="button"
+                [disabled]="posting()"
+                (click)="editing.set(false); formError.set('')"
+              >
+                Cancelar edición
+              </button>
+            }
+            @if (formError()) {
+              <p class="error-message" role="alert">{{ formError() }}</p>
+            }
+          </form>
+        }
       } @else if (session.account()?.rol === "ADMIN") {
         <div class="moderator-note">
           <span aria-hidden="true">◇</span>
           <p>
             <strong>Estás moderando esta comunidad.</strong><br />Puedes ocultar
             una reseña e indicar el motivo desde su tarjeta.
+            <a routerLink="/comunidad/moderacion"
+              >Ver historial de moderación →</a
+            >
           </p>
         </div>
       } @else if (session.status() === "loading") {

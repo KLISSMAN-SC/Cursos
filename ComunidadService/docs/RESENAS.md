@@ -1,7 +1,9 @@
 # Reseñas y moderación de ComunidadService
 
-Esta entrega permite consultar, publicar y ocultar reseñas desde FrontComunidad.
-Los puntos, insignias y eventos de ProgresoService quedan para la siguiente etapa.
+Este documento describe la entrega histórica feat/comunidad-resenas. Para la
+continuación actual usa [COMUNIDAD_COMPLETA.md](COMUNIDAD_COMPLETA.md), que implementa
+edición propia, reseña activa única, derechos, historial, insignias y puntos.
+Las limitaciones descritas aquí corresponden únicamente a aquella versión.
 
 ## Actualizar desde la base que ya funciona
 

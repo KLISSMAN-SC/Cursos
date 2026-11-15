@@ -20,6 +20,17 @@ class ReviewCreate(BaseModel):
         return value or None
 
 
+class ReviewUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    calificacion: int = Field(strict=True, ge=1, le=5)
+    comentario: str | None = Field(default=None, max_length=2000)
+
+    @field_validator("comentario")
+    @classmethod
+    def blank_to_none(cls, value: str | None) -> str | None:
+        return value or None
+
+
 class ReviewRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -28,11 +39,16 @@ class ReviewRead(BaseModel):
     calificacion: int
     comentario: str | None
     creada_en: datetime
+    actualizada_en: datetime | None = None
 
-    @field_validator("creada_en")
+    @field_validator("creada_en", "actualizada_en")
     @classmethod
-    def utc_date(cls, value: datetime) -> datetime:
-        return value if value.tzinfo else value.replace(tzinfo=UTC)
+    def utc_date(cls, value: datetime | None) -> datetime | None:
+        return value if value is None or value.tzinfo else value.replace(tzinfo=UTC)
+
+
+class OwnReviewRead(ReviewRead):
+    oculta: bool
 
 
 class ReviewSummary(BaseModel):
@@ -61,3 +77,19 @@ class ModerationRead(BaseModel):
     administrador_id: int
     motivo: str
     moderada_en: datetime
+
+    @field_validator("moderada_en")
+    @classmethod
+    def utc_date(cls, value: datetime) -> datetime:
+        return value if value.tzinfo else value.replace(tzinfo=UTC)
+
+
+class AdminReviewRead(OwnReviewRead):
+    moderacion: ModerationRead | None = None
+
+
+class AdminReviewPage(BaseModel):
+    items: list[AdminReviewRead]
+    total: int
+    limit: int
+    offset: int

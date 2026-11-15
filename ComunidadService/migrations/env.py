@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, pool
 
 from app.core.config import Settings
 from app.database.base import Base
-from app.models import Review, ReviewModeration  # noqa: F401
+from app.models import ProcessedEvent, Review, ReviewModeration, Reward  # noqa: F401
 
 target_metadata = Base.metadata
 

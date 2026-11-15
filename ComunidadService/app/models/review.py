@@ -12,6 +12,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    column,
     false,
     func,
 )
@@ -32,6 +33,14 @@ class Review(Base):
             "comentario IS NULL OR length(comentario) <= 2000", name="ck_resenas_comentario"
         ),
         Index("ix_resenas_curso_visible", "curso_id", "oculta", "id"),
+        Index(
+            "uq_resenas_activa_estudiante_curso",
+            "estudiante_id",
+            "curso_id",
+            unique=True,
+            postgresql_where=column("oculta").is_(False),
+            sqlite_where=column("oculta").is_(False),
+        ),
     )
     id: Mapped[int] = mapped_column(identifier, primary_key=True, autoincrement=True)
     curso_id: Mapped[int] = mapped_column(BigInteger)
@@ -40,6 +49,7 @@ class Review(Base):
     comentario: Mapped[str | None] = mapped_column(Text, nullable=True)
     oculta: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
     creada_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    actualizada_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
 class ReviewModeration(Base):

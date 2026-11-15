@@ -1,0 +1,141 @@
+<header class="section-heading">
+  <p class="eyebrow">CUIDAMOS NUESTRA COMUNIDAD</p>
+  <h1>Un espacio de aprendizaje<br /><em>empieza con respeto.</em></h1>
+  <p>Revisa las reseñas y consulta el historial de moderación.</p>
+</header>
+@if (session.account()?.rol !== "ADMIN") {
+  <section class="panel state">
+    <h2>Acceso para administradores</h2>
+    <p>
+      {{
+        session.status() === "loading"
+          ? "Comprobando tu sesión…"
+          : "Necesitas una cuenta de administrador para moderar reseñas."
+      }}
+    </p>
+    @if (session.status() === "unavailable") {
+      <button class="secondary-button" (click)="session.restore()">
+        Reintentar sesión
+      </button>
+    }
+    @if (localSessions) {
+      <a routerLink="/desarrollo/sesion">Conectar sesión de prueba →</a>
+    }
+  </section>
+} @else {
+  <form class="panel filters" (ngSubmit)="notice.set(''); load()">
+    <div>
+      <label for="review-state">Estado</label
+      ><select id="review-state" name="state" [(ngModel)]="state">
+        <option value="todas">Todas las reseñas</option>
+        <option value="visibles">Visibles</option>
+        <option value="ocultas">Ocultas</option>
+      </select>
+    </div>
+    <div>
+      <label for="course-filter">ID de curso (opcional)</label
+      ><input
+        id="course-filter"
+        name="course"
+        inputmode="numeric"
+        [(ngModel)]="course"
+        placeholder="Todos los cursos"
+      />
+    </div>
+    <button class="primary-button" [disabled]="loading()">
+      Filtrar reseñas
+    </button>
+  </form>
+  @if (notice()) {
+    <p class="panel" role="status">{{ notice() }}</p>
+  }
+  @if (loading()) {
+    <p role="status">Cargando reseñas…</p>
+  }
+  @if (error()) {
+    <div class="error-message" role="alert">
+      {{ error() }}
+      <button class="text-button" (click)="load(data()?.offset || 0)">
+        Reintentar
+      </button>
+    </div>
+  }
+  @if (data(); as page) {
+    <div class="list-heading">
+      <h2>
+        Reseñas <span class="muted">({{ page.total }})</span>
+      </h2>
+      <button
+        class="text-button"
+        (click)="load(page.offset)"
+        [disabled]="loading()"
+      >
+        ↻ Actualizar
+      </button>
+    </div>
+    <div class="moderation-list" [attr.aria-busy]="loading()">
+      @for (review of page.items; track review.id) {
+        <section>
+          <div class="review-context">
+            <span>Curso #{{ review.curso_id }} · Reseña #{{ review.id }}</span
+            ><span class="status-label">{{
+              review.oculta ? "Oculta" : "Visible"
+            }}</span>
+          </div>
+          @if (review.oculta) {
+            <article class="panel hidden-review">
+              <strong
+                >Estudiante #{{ review.estudiante_id }} ·
+                {{ review.calificacion }} de 5</strong
+              >
+              <p class="comment">
+                {{ review.comentario || "Sin comentario." }}
+              </p>
+              @if (review.moderacion; as audit) {
+                <div class="audit">
+                  <strong>Motivo del ocultamiento</strong>
+                  <p>{{ audit.motivo }}</p>
+                  <small
+                    >Administrador #{{ audit.administrador_id }} ·
+                    {{ audit.moderada_en | date: "d MMM yyyy, HH:mm" }}</small
+                  >
+                </div>
+              }
+            </article>
+          } @else {
+            <app-review-card
+              [review]="review"
+              [admin]="true"
+              (hidden)="reviewHidden()"
+            />
+          }
+        </section>
+      } @empty {
+        <section class="panel state">
+          <h3>Sin reseñas para estos filtros</h3>
+          <p>Prueba otro curso o estado.</p>
+        </section>
+      }
+    </div>
+    @if (page.total > page.limit) {
+      <nav class="pagination" aria-label="Páginas de moderación">
+        <button
+          class="secondary-button"
+          (click)="load(page.offset - page.limit)"
+          [disabled]="loading() || page.offset === 0"
+        >
+          ← Anterior</button
+        ><span
+          >{{ page.offset + 1 }}–{{ page.offset + page.items.length }} de
+          {{ page.total }}</span
+        ><button
+          class="secondary-button"
+          (click)="load(page.offset + page.limit)"
+          [disabled]="loading() || page.offset + page.limit >= page.total"
+        >
+          Siguiente →
+        </button>
+      </nav>
+    }
+  }
+}

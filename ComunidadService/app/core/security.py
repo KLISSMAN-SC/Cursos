@@ -62,7 +62,7 @@ def current_principal(
 
 def require_student(principal: Annotated[Principal, Depends(current_principal)]) -> Principal:
     if principal.rol != "ESTUDIANTE":
-        raise HTTPException(403, "Solo los estudiantes pueden publicar reseñas.")
+        raise HTTPException(403, "Esta función requiere una cuenta de estudiante.")
     return principal
 
 

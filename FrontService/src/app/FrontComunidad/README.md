@@ -1,5 +1,10 @@
 # FrontComunidad
 
+La continuación feat/comunidad-completa incorpora edición de la reseña propia,
+Mis logros (/comunidad/logros) y administración con historial
+(/comunidad/moderacion). Ver [guía actual](../../../../ComunidadService/docs/COMUNIDAD_COMPLETA.md).
+La descripción de la base de reseñas siguiente corresponde al avance anterior.
+
 Reseñas implementadas en pages/resenas. La moderación vive en el componente de
 cada tarjeta, dentro de components; no hace falta una pantalla administrativa
 separada para ocultar un comentario.

@@ -1,6 +1,13 @@
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
-import { Review, ReviewInput, ReviewPage } from "../models/review";
+import {
+  AdminReviewPage,
+  OwnReview,
+  Review,
+  ReviewInput,
+  ReviewPage,
+} from "../models/review";
+import { RewardPage } from "../models/reward";
 @Injectable({ providedIn: "root" })
 export class CommunityApi {
   private readonly http = inject(HttpClient);
@@ -20,5 +27,28 @@ export class CommunityApi {
       `${this.base}/resenas/${id}/ocultar`,
       { motivo: reason.trim() },
     );
+  }
+  mine(courseId: number) {
+    return this.http.get<OwnReview | null>(`${this.base}/resenas/mia`, {
+      params: { curso_id: courseId },
+    });
+  }
+  edit(id: number, data: Omit<ReviewInput, "curso_id">) {
+    return this.http.patch<Review>(`${this.base}/resenas/${id}`, data);
+  }
+  rewards(offset = 0) {
+    return this.http.get<RewardPage>(`${this.base}/mis-logros`, {
+      params: { limit: 12, offset },
+    });
+  }
+  moderation(state = "todas", courseId: number | null = null, offset = 0) {
+    let params = new HttpParams()
+      .set("estado", state)
+      .set("limit", 12)
+      .set("offset", offset);
+    if (courseId !== null) params = params.set("curso_id", courseId);
+    return this.http.get<AdminReviewPage>(`${this.base}/admin/resenas`, {
+      params,
+    });
   }
 }

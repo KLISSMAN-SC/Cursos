@@ -9,7 +9,7 @@ from app.main import create_app
 def test_liveness_no_depende_de_la_base(client):
     response = client.get("/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "service": "ComunidadService", "version": "0.1.0"}
+    assert response.json() == {"status": "ok", "service": "ComunidadService", "version": "0.2.0"}
 
 
 def test_raiz_responde_con_el_nombre_correcto(client):

@@ -7,10 +7,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 
+from app.clients.catalogo import CatalogClient
 from app.core.config import SERVICE_NAME, SERVICE_VERSION, Settings
 from app.database.connection import Database
 from app.routers.health import router as health_router
 from app.routers.reviews import router as reviews_router
+from app.routers.rewards import router as rewards_router
 
 
 def create_app(settings: Settings | None = None, *, database: Database | None = None) -> FastAPI:
@@ -27,11 +29,12 @@ def create_app(settings: Settings | None = None, *, database: Database | None = 
     application = FastAPI(
         title=SERVICE_NAME,
         version=SERVICE_VERSION,
-        description="Reseñas y moderación auditada de ComunidadService.",
+        description="Reseñas, moderación auditada e insignias de ComunidadService.",
         lifespan=lifespan,
     )
     application.state.settings = configuration
     application.state.database = connection
+    application.state.catalog_client = CatalogClient(configuration)
     application.add_middleware(
         CORSMiddleware,
         allow_origins=configuration.cors_origins,
@@ -49,6 +52,7 @@ def create_app(settings: Settings | None = None, *, database: Database | None = 
 
     application.include_router(health_router)
     application.include_router(reviews_router)
+    application.include_router(rewards_router)
     return application
 
 

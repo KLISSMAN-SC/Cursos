@@ -4,11 +4,14 @@ Repositorio del equipo: cinco servicios backend independientes y una aplicación
 frontend Angular compartida, organizada por áreas funcionales.
 
 El repositorio contiene la estructura inicial y sus acuerdos propuestos.
-ComunidadService incluye FastAPI/PostgreSQL, reseñas, moderación auditada y pruebas.
+ComunidadService incluye FastAPI/PostgreSQL, reseñas, moderación auditada,
+validación de derechos, insignias/puntos y un consumidor RabbitMQ independiente.
 FrontService ya está inicializado con Angular y las pantallas de FrontComunidad.
 Los demás backends y áreas mantienen su estructura inicial. UsuarioService y
 Catálogo aún deben completar los contratos de integración; la prueba independiente
-usa JWT de laboratorio firmados localmente. Ver ComunidadService/docs/RESENAS.md.
+usa JWT de laboratorio firmados localmente. Ver la
+[guía de continuación](ComunidadService/docs/COMUNIDAD_COMPLETA.md) para instalar,
+actualizar sin perder datos y demostrar los flujos.
 
 ## Distribución del trabajo
 

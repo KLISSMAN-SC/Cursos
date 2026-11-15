@@ -1,0 +1,71 @@
+name: Comunidad
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ["ComunidadService/**", "FrontService/**", ".github/workflows/comunidad.yml"]
+  push:
+    branches: ["feat/comunidad-**"]
+    paths: ["ComunidadService/**", "FrontService/**", ".github/workflows/comunidad.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: comunidad_test
+          POSTGRES_PASSWORD: pruebas_ci_efimeras
+          POSTGRES_DB: comunidad_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U comunidad_test -d comunidad_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+      rabbitmq:
+        image: rabbitmq:4.3-management
+        env:
+          RABBITMQ_DEFAULT_USER: comunidad
+          RABBITMQ_DEFAULT_PASS: pruebas_ci_efimeras
+        ports: ["5672:5672"]
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q ping"
+          --health-interval 10s --health-timeout 10s --health-retries 12
+    defaults:
+      run:
+        working-directory: ComunidadService
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: ComunidadService/requirements*.txt
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pip check
+      - run: python -m ruff check app tests migrations scripts
+      - run: python -m pytest -q
+        env:
+          COMUNIDAD_TEST_POSTGRES_URL: postgresql+psycopg://comunidad_test:pruebas_ci_efimeras@127.0.0.1:5432/comunidad_test
+          COMUNIDAD_TEST_RABBITMQ_HOST: 127.0.0.1
+          COMUNIDAD_TEST_RABBITMQ_USER: comunidad
+          COMUNIDAD_TEST_RABBITMQ_PASSWORD: pruebas_ci_efimeras
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: FrontService
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: FrontService/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm test -- --watch=false
+      - run: npm run build
+      - run: npm run build:local

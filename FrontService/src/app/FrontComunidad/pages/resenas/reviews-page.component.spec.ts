@@ -33,6 +33,8 @@ describe("Reseñas de Comunidad", () => {
     list: ReturnType<typeof vi.fn>;
     publish: ReturnType<typeof vi.fn>;
     hide: ReturnType<typeof vi.fn>;
+    mine: ReturnType<typeof vi.fn>;
+    edit: ReturnType<typeof vi.fn>;
   };
   let session: {
     account: ReturnType<typeof signal<Account | null>>;
@@ -43,6 +45,8 @@ describe("Reseñas de Comunidad", () => {
       list: vi.fn(() => of(page())),
       publish: vi.fn(() => of(page().items[0])),
       hide: vi.fn(() => of({ resena_id: 1 })),
+      mine: vi.fn(() => of(null)),
+      edit: vi.fn(() => of(page().items[0])),
     };
     session = {
       account: signal<Account | null>(null),
@@ -192,5 +196,46 @@ describe("Reseñas de Comunidad", () => {
     harness.detectChanges();
     expect(component.courseId()).toBe(2);
     expect(component.data()?.total).toBe(2);
+  });
+  it("permite editar la reseña propia sin publicar una segunda", async () => {
+    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    api.mine.mockReturnValue(of({ ...page().items[0], oculta: false }));
+    const { component, harness, root } = await open();
+    expect(root.textContent).toContain("Ya compartiste tu experiencia");
+    component.publish();
+    expect(api.publish).not.toHaveBeenCalled();
+    component.beginEdit();
+    component.comment = "Ahora actualizado";
+    component.rating = 3;
+    component.publish();
+    harness.detectChanges();
+    expect(api.edit).toHaveBeenCalledWith(1, {
+      calificacion: 3,
+      comentario: "Ahora actualizado",
+    });
+    expect(api.publish).not.toHaveBeenCalled();
+    expect(root.textContent).toContain("Tu reseña fue actualizada");
+  });
+  it("un fallo consultando la propia impide duplicarla y permite recuperar", async () => {
+    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    api.mine.mockReturnValueOnce(throwError(() => ({ status: 503 })));
+    const { component, harness, root } = await open();
+    component.publish();
+    expect(api.publish).not.toHaveBeenCalled();
+    expect(root.querySelector(".composer")).toBeNull();
+    component.loadOwn();
+    harness.detectChanges();
+    expect(root.querySelector(".composer")).toBeTruthy();
+  });
+  it("cambiar de sesión descarta una respuesta privada pendiente", async () => {
+    session.account.set({ id: 7, rol: "ESTUDIANTE" });
+    const pending = new Subject();
+    api.mine.mockReturnValueOnce(pending);
+    const { component, harness } = await open();
+    session.account.set(null);
+    harness.detectChanges();
+    pending.next({ ...page().items[0], oculta: false });
+    expect(component.own()).toBeNull();
+    expect(component.ownLoading()).toBe(false);
   });
 });

@@ -2,58 +2,11 @@ from datetime import UTC, datetime, timedelta
 
 import jwt
 import pytest
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, func, select
+from sqlalchemy import func, select
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
-from sqlalchemy.pool import StaticPool
 
-from app.database.base import Base
-from app.database.connection import Database
-from app.main import create_app
 from app.models import Review, ReviewModeration
-
-
-@pytest.fixture(scope="session")
-def keys(tmp_path_factory):
-    directory = tmp_path_factory.mktemp("jwt")
-    private = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-    path = directory / "public.pem"
-    path.write_bytes(
-        private.public_key().public_bytes(
-            serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
-        )
-    )
-    return private, path
-
-
-@pytest.fixture
-def api(settings, keys):
-    private, public_path = keys
-    settings.jwt_public_key_file = str(public_path)
-    engine = create_engine(
-        "sqlite+pysqlite:///:memory:",
-        poolclass=StaticPool,
-        connect_args={"check_same_thread": False},
-    )
-    Base.metadata.create_all(engine)
-    database = Database(settings, engine=engine)
-
-    def token(role="ESTUDIANTE", subject="7", **changes):
-        claims = {
-            "sub": subject,
-            "rol": role,
-            "iss": settings.jwt_issuer,
-            "aud": settings.jwt_audience,
-            "exp": datetime.now(UTC) + timedelta(minutes=5),
-        }
-        claims.update(changes)
-        return {"Authorization": "Bearer " + jwt.encode(claims, private, algorithm="RS256")}
-
-    with TestClient(create_app(settings, database=database)) as client:
-        yield client, database, token
 
 
 def publish(client, headers, rating=5, course=1, comment="Buen curso"):
@@ -66,8 +19,8 @@ def publish(client, headers, rating=5, course=1, comment="Buen curso"):
 
 def test_listado_publico_paginado_y_resumen_aislado_por_curso(api):
     client, _, token = api
-    for rating in (1, 5, 3):
-        assert publish(client, token(), rating).status_code == 201
+    for student, rating in enumerate((1, 5, 3), start=7):
+        assert publish(client, token(subject=str(student)), rating).status_code == 201
     publish(client, token(), 1, course=2)
     response = client.get("/api/v1/resenas?curso_id=1&limit=2&offset=1")
     assert response.status_code == 200
@@ -140,7 +93,7 @@ def test_admin_no_publica_y_alumno_no_modera(api):
 def test_ocultar_requiere_motivo_y_actualiza_listado_resumen_y_auditoria(api):
     client, database, token = api
     first = publish(client, token(), 1).json()
-    publish(client, token(), 5)
+    publish(client, token(subject="8"), 5)
     path = f"/api/v1/resenas/{first['id']}/ocultar"
     assert client.patch(path, headers=token("ADMIN"), json={"motivo": "  "}).status_code == 422
     response = client.patch(path, headers=token("ADMIN", "23"), json={"motivo": "  Ofensivo  "})

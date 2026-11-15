@@ -1,78 +1,157 @@
-# Contrato de ComunidadService: reseñas
+# Contratos de ComunidadService
 
-Confirmado: JWT y IDs enteros. El detalle criptográfico siguiente es una propuesta
-implementada para probar independientemente; acordarlo con UsuarioService antes
-de integrar su inicio de sesión real.
+Comunidad posee las tablas de reseñas, moderaciones, recompensas y eventos
+procesados. No consulta las bases de otros servicios. Implementa RN10–RN12,
+CU06, CU07, CU09 y CU_Consume del informe de AulaBreve.
 
-## Identidad
+Los otros backends todavía son estructuras vacías. Los contratos siguientes están
+implementados del lado de Comunidad y deben acordarse con sus responsables.
 
-JWT firmado con RS256. ComunidadService solo necesita la clave pública.
+## Identidad de UsuarioService
 
-| Claim | Formato esperado |
+JWT RS256; Comunidad recibe solo la clave pública.
+
+| Claim | Formato |
 | --- | --- |
-| sub | Cadena decimal del ID entero positivo del usuario, por ejemplo "7" |
+| sub | ID positivo como cadena decimal, por ejemplo "7" |
 | rol | ESTUDIANTE o ADMIN |
-| iss | Emisor configurado por COMUNIDAD_JWT_ISSUER; propuesta UsuarioService |
-| aud | Audiencia configurada por COMUNIDAD_JWT_AUDIENCE; propuesta ComunidadService |
-| exp | Expiración JWT obligatoria |
+| iss | COMUNIDAD_JWT_ISSUER; predeterminado UsuarioService |
+| aud | COMUNIDAD_JWT_AUDIENCE; predeterminado ComunidadService |
+| exp | Expiración obligatoria |
 
-Se verifica firma, algoritmo fijo, emisor, audiencia y expiración. sub es una
-cadena según JWT; los IDs de las solicitudes/respuestas JSON son números enteros.
-No se reciben estudiante_id, administrador_id ni rol en los cuerpos de mutación.
-No se acepta X-Student-Id o X-Admin-Id como autenticación. Los IDs externos se
-limitan a 1..9007199254740991 para conservar su precisión en JavaScript.
+Se verifican firma, algoritmo fijo, emisor, audiencia y expiración. IDs JSON:
+enteros de 1 a 9007199254740991. La identidad de las mutaciones sale del JWT;
+no se admite estudiante_id, administrador_id o rol en sus cuerpos ni headers
+editables. La herramienta local no crea usuarios reales y su pantalla no se
+registra en el build production.
 
-## API
+## API de Comunidad
 
-Base directa: /api/v1. Proxy del frontend: /api/comunidad/api/v1.
+Base directa: /api/v1. Proxy Angular/Nginx: /api/comunidad/api/v1.
 
 | Método y ruta | Permiso | Resultado |
 | --- | --- | --- |
-| GET /sesion | JWT válido | id y rol verificados |
-| GET /resenas?curso_id=1&limit=6&offset=0 | Público | items, total, limit, offset y resumen |
-| POST /resenas | ESTUDIANTE | 201, reseña creada |
-| PATCH /resenas/{id}/ocultar | ADMIN | Auditoría del ocultamiento |
+| GET /sesion | JWT válido | Identidad verificada |
+| GET /resenas?curso_id=1&limit=6&offset=0 | Público | Página y resumen de visibles |
+| GET /resenas/mia?curso_id=1 | ESTUDIANTE | Activa propia; última oculta si no hay activa; null si no existe |
+| POST /resenas | ESTUDIANTE con acceso vigente | 201; una activa por estudiante/curso |
+| PATCH /resenas/{id} | Autor ESTUDIANTE con acceso vigente | Edición de calificación y comentario |
+| PATCH /resenas/{id}/ocultar | ADMIN | Auditoría y ocultamiento atómicos |
+| GET /admin/resenas?estado=todas | ADMIN | Visibles y ocultas con auditoría |
+| GET /mis-logros?limit=12&offset=0 | ESTUDIANTE | Sus insignias, total y puntos |
 
-Crear reseña:
+Publicación:
 
 ```json
-{"curso_id":1,"calificacion":5,"comentario":"Me resultó útil"}
+{"curso_id":1,"calificacion":5,"comentario":"Aprendí bastante"}
 ```
 
-calificacion es un entero de 1 a 5. comentario es opcional, se recorta y admite
-hasta 2000 caracteres; el texto vacío se guarda como null. Los campos adicionales
-se rechazan. La identidad se deriva exclusivamente del JWT.
+Edición, sin poder cambiar el curso o el autor:
 
-Ocultar:
+```json
+{"calificacion":4,"comentario":"Actualicé mi experiencia"}
+```
+
+Calificación: entero estricto 1..5. Comentario opcional, recortado y de hasta 2000
+caracteres; vacío se guarda como null. Se rechazan campos adicionales. Una reseña
+oculta no se edita ni restaura; la regla de una activa permite publicar otra
+conservando el registro anterior y su auditoría.
+
+Ocultamiento:
 
 ```json
 {"motivo":"Contenido ofensivo"}
 ```
 
-Motivo obligatorio, recortado, de 1 a 1000 caracteres. El cambio y la auditoría se
-confirman en una misma transacción. Repetirlo devuelve 409 y no duplica auditoría.
-No existe eliminación física ni restauración en esta entrega.
+Motivo obligatorio de 1..1000 caracteres tras recortar. Repetirlo devuelve 409 sin
+duplicar auditoría. Un trigger PostgreSQL rechaza UPDATE y DELETE de las
+moderaciones. No existe eliminación física en la API.
 
-La consulta pública siempre excluye ocultas y calcula media, distribución y total
-sobre esas mismas filas visibles. Orden: ID descendente. limit: 1..100; offset >=0.
-Sin reseñas, promedio es null. La media se redondea a un decimal.
+El listado público y el resumen excluyen ocultas. Promedio sobre las mismas filas
+visibles, redondeado a un decimal; null si no hay reseñas. Orden: ID descendente.
+limit 1..100, offset >=0. Administración admite curso_id opcional y estado
+todas/visibles/ocultas. Mis logros admite curso_id opcional; sus totales se calculan
+sobre todo el filtro, no solo la página. La moderación no modifica puntos.
 
-| Error | Significado |
+| HTTP | Significado |
 | --- | --- |
-| 401 | Token ausente, alterado, expirado o con claims inválidos |
-| 403 | Rol sin permiso para la operación |
-| 404 | Reseña a ocultar inexistente |
-| 409 | Reseña ya ocultada |
-| 422 | Datos o paginación inválidos |
-| 503 | Autenticación sin configurar o base de datos no disponible |
+| 401 | Sesión ausente o inválida |
+| 403 | Rol incorrecto, reseña ajena o derecho no activo |
+| 404 | Reseña inexistente |
+| 409 | Reseña activa duplicada, oculta o cambio concurrente |
+| 422 | Datos, IDs, estado o paginación inválidos |
+| 503 | Base, autenticación o Catálogo no disponibles/configurados |
 
-## Integración pendiente
+## Consulta de derechos a Catálogo
 
-CatalogoService debe aportar el curso y su ID. Acordar si reseñar exige curso
-existente, compra, matrícula o avance; todavía no hay un endpoint implementado de
-Catálogo/Pagos que permita verificar esas condiciones. Tampoco se ha acordado una
-única reseña por alumno. No dar por aprobadas esas reglas con el modo de pruebas.
+Configurar COMUNIDAD_CATALOGO_BASE_URL y COMUNIDAD_CATALOGO_SERVICE_TOKEN. Se envía
+una credencial de servicio; no se reenvía el JWT del alumno a una audiencia ajena.
 
-UsuarioService debe confirmar los claims y entregar la clave pública, no la
-privada. FrontUsuarios conectará el login real con core/auth y las rutas compartidas.
-ProgresoService aún no aporta eventos de logros; no forman parte de esta entrega.
+```http
+GET /api/v1/derechos?estudiante_id=7&curso_id=1
+Authorization: Bearer <credencial-del-servicio>
+```
+
+Respuesta 200:
+
+```json
+{"estudiante_id":7,"curso_id":1,"estado":"ACTIVO"}
+```
+
+Estados ACTIVO/PENDIENTE/REVOCADO/INEXISTENTE; solo ACTIVO autoriza crear/editar.
+Los IDs deben coincidir exactamente. Un 404 se interpreta como ausencia de derecho
+(403). Timeout, respuesta inválida, identidad distinta, error de credencial o
+configuración ausente devuelven 503, sin conceder acceso por defecto. Timeout
+configurable 1..15 s. La lectura pública no verifica existencia/nombre del curso;
+el enlace desde Catálogo aporta el ID y ?titulo=Nombre opcional para presentación.
+
+## Evento de ProgresoService
+
+AMQP 0-9-1 / RabbitMQ. Configuración predeterminada:
+
+| Elemento | Valor |
+| --- | --- |
+| Exchange topic durable | cursos.eventos |
+| Routing key | progreso.modulo_completado.v1 |
+| Cola durable quorum | comunidad.modulos |
+| Reintentos diferidos | comunidad.modulos.retry |
+| Mensajes fallidos | comunidad.modulos.dlq |
+
+Payload UTF-8 application/json, máximo 65536 bytes:
+
+```json
+{
+  "evento_id":"bfbd2577-38a7-45c4-8b81-6014be6f91cc",
+  "tipo":"ModuloCompletado",
+  "estudiante_id":7,
+  "curso_id":1,
+  "version_curso":1,
+  "modulo_id":2,
+  "completado_en":"2026-11-14T18:00:00Z"
+}
+```
+
+evento_id es UUID estable, IDs/versiones enteros positivos y fecha con zona
+horaria. No se admiten puntos, insignias o reglas elegidos por el productor. Cada
+usuario + curso + versión + módulo + regla modulo_completado_v1 recibe una insignia
+y exactamente 10 puntos una sola vez.
+
+Progreso publica solo tras completar el 100% del módulo de la versión adquirida.
+Debe guardar el evento con el avance en su outbox y publicarlo persistente, con
+mandatory y publisher confirms; conserva evento_id y payload al reintentar.
+Comunidad no reemplaza su outbox ni recalcula el avance académico.
+
+El consumidor confirma ACK después del commit local de evento y recompensa.
+Repetir el mismo ID/contenido o usar otro ID para el mismo hito no duplica puntos.
+Reutilizar ID con otro contenido va a DLQ. No hay API pública para otorgar premios.
+
+Errores temporales: tres reintentos diferidos (10 s por defecto), luego DLQ.
+Errores de esquema/conflicto: DLQ directa. Se confirma el reenvío persistente antes
+del ACK original; si falla, no se confirma el original. Colas quorum con estrategia
+de dead lettering at-least-once conservan mensajes al volver desde retry. Solo el
+worker depende del broker, no las consultas de la API.
+
+Revisar la causa de una DLQ antes de republicar el payload original al exchange y
+routing key acordados. No purgar ni cambiar ID para resolver conflictos sin
+coordinar con Progreso. En producción, limitar permisos del productor a publicar y
+del consumidor a sus colas; las credenciales AMQP nunca llegan al navegador.
