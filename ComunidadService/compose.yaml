@@ -1,0 +1,127 @@
+name: cursos-comunidad
+
+services:
+  comunidad-db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: ${COMUNIDAD_DB_NAME:-comunidad_db}
+      POSTGRES_USER: ${COMUNIDAD_DB_USER:-comunidad_user}
+      POSTGRES_PASSWORD: ${COMUNIDAD_DB_PASSWORD:?Copia .env.example a .env y configura la clave}
+    volumes:
+      - comunidad_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  comunidadservice:
+    image: cursos-comunidadservice:local
+    build:
+      context: .
+    environment: &comunidad-environment
+      COMUNIDAD_JWT_PUBLIC_KEY_FILE: ${COMUNIDAD_JWT_PUBLIC_KEY_FILE:-config/jwt/usuarios-public.pem}
+      COMUNIDAD_JWT_ISSUER: ${COMUNIDAD_JWT_ISSUER:-UsuarioService}
+      COMUNIDAD_JWT_AUDIENCE: ${COMUNIDAD_JWT_AUDIENCE:-ComunidadService}
+      COMUNIDAD_DB_HOST: comunidad-db
+      COMUNIDAD_DB_PORT: "5432"
+      COMUNIDAD_DB_NAME: ${COMUNIDAD_DB_NAME:-comunidad_db}
+      COMUNIDAD_DB_USER: ${COMUNIDAD_DB_USER:-comunidad_user}
+      COMUNIDAD_DB_PASSWORD: ${COMUNIDAD_DB_PASSWORD:?Configura COMUNIDAD_DB_PASSWORD}
+      COMUNIDAD_DB_CONNECT_TIMEOUT: ${COMUNIDAD_DB_CONNECT_TIMEOUT:-5}
+      COMUNIDAD_CORS_ORIGINS: '${COMUNIDAD_CORS_ORIGINS:-["http://localhost:4200"]}'
+      COMUNIDAD_CATALOGO_BASE_URL: ${COMUNIDAD_CATALOGO_BASE_URL:-}
+      COMUNIDAD_CATALOGO_SERVICE_TOKEN: ${COMUNIDAD_CATALOGO_SERVICE_TOKEN:-}
+      COMUNIDAD_CATALOGO_TIMEOUT: ${COMUNIDAD_CATALOGO_TIMEOUT:-5}
+      COMUNIDAD_RABBITMQ_HOST: comunidad-rabbitmq
+      COMUNIDAD_RABBITMQ_PORT: "5672"
+      COMUNIDAD_RABBITMQ_USER: ${COMUNIDAD_RABBITMQ_USER:-comunidad}
+      COMUNIDAD_RABBITMQ_PASSWORD: ${COMUNIDAD_RABBITMQ_PASSWORD:-cambia_clave_rabbit_local}
+      COMUNIDAD_RABBITMQ_VHOST: ${COMUNIDAD_RABBITMQ_VHOST:-/}
+      COMUNIDAD_EVENT_EXCHANGE: ${COMUNIDAD_EVENT_EXCHANGE:-cursos.eventos}
+      COMUNIDAD_EVENT_QUEUE: ${COMUNIDAD_EVENT_QUEUE:-comunidad.modulos}
+      COMUNIDAD_EVENT_ROUTING_KEY: ${COMUNIDAD_EVENT_ROUTING_KEY:-progreso.modulo_completado.v1}
+      COMUNIDAD_EVENT_MAX_RETRIES: ${COMUNIDAD_EVENT_MAX_RETRIES:-3}
+      COMUNIDAD_EVENT_RETRY_DELAY_MS: ${COMUNIDAD_EVENT_RETRY_DELAY_MS:-10000}
+    volumes:
+      - ./config/jwt:/app/config/jwt:ro
+    ports:
+      - "127.0.0.1:${COMUNIDAD_PORT:-8001}:8000"
+    depends_on:
+      comunidad-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/db', timeout=7).close()"]
+      interval: 15s
+      timeout: 10s
+      start_period: 15s
+      retries: 4
+    restart: unless-stopped
+
+  sesiones-prueba:
+    profiles: ["herramientas"]
+    image: cursos-comunidadservice:local
+    pull_policy: never
+    user: "0:0"
+    env_file: .env
+    command: ["python", "-m", "scripts.preparar_pruebas_jwt"]
+    volumes:
+      - ./config/jwt:/app/config/jwt
+      - ./.local-auth:/app/.local-auth
+
+  frontservice:
+    profiles: ["front"]
+    build:
+      context: ../FrontService
+      args:
+        APP_CONFIGURATION: local
+    ports:
+      - "127.0.0.1:${FRONT_PORT:-4200}:80"
+    depends_on:
+      comunidadservice:
+        condition: service_healthy
+    restart: unless-stopped
+
+  comunidad-rabbitmq:
+    profiles: ["eventos"]
+    image: rabbitmq:4.3-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${COMUNIDAD_RABBITMQ_USER:-comunidad}
+      RABBITMQ_DEFAULT_PASS: ${COMUNIDAD_RABBITMQ_PASSWORD:-cambia_clave_rabbit_local}
+      RABBITMQ_DEFAULT_VHOST: ${COMUNIDAD_RABBITMQ_VHOST:-/}
+    volumes:
+      - comunidad_rabbitmq:/var/lib/rabbitmq
+    ports:
+      - "127.0.0.1:15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+    restart: unless-stopped
+
+  comunidad-worker:
+    profiles: ["eventos"]
+    image: cursos-comunidadservice:local
+    build:
+      context: .
+    environment: *comunidad-environment
+    command: ["python", "-m", "app.events.worker"]
+    depends_on:
+      comunidad-db:
+        condition: service_healthy
+      comunidad-rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+
+  publicar-modulo:
+    profiles: ["herramientas"]
+    image: cursos-comunidadservice:local
+    pull_policy: never
+    environment: *comunidad-environment
+    command: ["python", "-m", "scripts.publicar_modulo", "--repetir", "2"]
+
+volumes:
+  comunidad_data:
+  comunidad_rabbitmq:

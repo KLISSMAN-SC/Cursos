@@ -1,0 +1,2 @@
+.local-auth/
+config/jwt/*.pem

@@ -1,0 +1,13 @@
+# Laboratorio explícito: usar junto con compose.yaml. No integrar a producción.
+services:
+  comunidadservice:
+    environment:
+      COMUNIDAD_CATALOGO_BASE_URL: http://catalogo-demo:8000
+      COMUNIDAD_CATALOGO_SERVICE_TOKEN: token-catalogo-solo-laboratorio
+  catalogo-demo:
+    image: cursos-comunidadservice:local
+    pull_policy: never
+    command: ["python", "-m", "uvicorn", "scripts.catalogo_demo:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      COMUNIDAD_CATALOGO_SERVICE_TOKEN: token-catalogo-solo-laboratorio
+    restart: unless-stopped

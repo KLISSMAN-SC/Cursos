@@ -1,15 +1,26 @@
 # FrontComunidad
 
-Área funcional dentro de la única aplicación Angular FrontService.
+La continuación feat/comunidad-completa incorpora edición de la reseña propia,
+Mis logros (/comunidad/logros) y administración con historial
+(/comunidad/moderacion). Ver [guía actual](../../../../ComunidadService/docs/COMUNIDAD_COMPLETA.md).
+La descripción de la base de reseñas siguiente corresponde al avance anterior.
 
-- pages/: pantallas de esta área, incluidas sus acciones administrativas.
-- components/: piezas reutilizadas solo dentro de esta área.
-- services/: clientes HTTP y estado específicos de esta área.
-- models/: tipos de los contratos usados por esta área.
+Reseñas implementadas en pages/resenas. La moderación vive en el componente de
+cada tarjeta, dentro de components; no hace falta una pantalla administrativa
+separada para ocultar un comentario.
 
-Pantallas iniciales propuestas: resenas, logros, moderacion.
-Todas están pendientes de implementación y acuerdo de contrato.
+- components/rating-summary: media y distribución de reseñas visibles.
+- components/review-card: comentario, fecha y controles del administrador.
+- pages/resenas: listado, formulario, carga, errores y paginación.
+- services/community-api: contratos HTTP de ComunidadService.
+- models/review: tipos usados por la pantalla.
 
-Usar la sesión de core/auth y los componentes de shared. Evitar crear otro login,
-un package.json propio o un workspace Angular dentro de esta carpeta. Coordinar
-la inclusión de las rutas de esta área en el archivo de rutas global.
+Ruta: /comunidad/cursos/:cursoId, con ID entero positivo. El título del curso puede
+llegar por ?titulo=Nombre como presentación, sin cambiar la referencia usada por
+la API. Hasta conectar Catálogo se usa Curso #ID.
+
+El alumno ve el formulario; el administrador ve moderación; el visitante puede
+leer. El backend valida los permisos en todas las mutaciones. Ocultar exige motivo,
+retira la reseña de la consulta pública y actualiza el resumen al recargar.
+
+Las páginas de logros y su API se implementarán en la siguiente etapa.

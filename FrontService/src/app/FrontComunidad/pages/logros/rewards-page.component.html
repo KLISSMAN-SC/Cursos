@@ -1,0 +1,116 @@
+<header class="section-heading">
+  <p class="eyebrow">CADA PASO CUENTA</p>
+  <h1>Tus ganas de aprender<br /><em>se convierten en logros.</em></h1>
+  <p>Una insignia y 10 puntos por cada módulo completado.</p>
+</header>
+@if (session.account()?.rol !== "ESTUDIANTE") {
+  <section class="panel state">
+    <h2>
+      {{
+        session.status() === "loading"
+          ? "Comprobando tu sesión…"
+          : "Un espacio para tus logros"
+      }}
+    </h2>
+    <p>
+      Entra con tu cuenta de estudiante para consultar tus insignias y puntos.
+    </p>
+    @if (session.status() === "unavailable") {
+      <button class="secondary-button" (click)="session.restore()">
+        Reintentar sesión
+      </button>
+    }
+    @if (localSessions) {
+      <a routerLink="/desarrollo/sesion">Conectar sesión de prueba →</a>
+    }
+  </section>
+} @else {
+  @if (loading()) {
+    <p role="status">Consultando tus logros…</p>
+  }
+  @if (error()) {
+    <section class="panel" role="alert">
+      <p class="error-message">{{ error() }}</p>
+      <button class="secondary-button" (click)="load(data()?.offset || 0)">
+        Reintentar
+      </button>
+    </section>
+  }
+  @if (data(); as page) {
+    <div class="stats" [attr.aria-busy]="loading()">
+      <div class="panel">
+        <span>PUNTOS DE PLATAFORMA</span><strong>{{ page.puntos }}</strong
+        ><small>Tu constancia suma.</small>
+      </div>
+      <div class="panel">
+        <span>INSIGNIAS OBTENIDAS</span><strong>{{ page.total }}</strong
+        ><small>Un módulo, un nuevo paso.</small>
+      </div>
+      <div class="panel stats-note">
+        <p>
+          Las insignias reconocen tu avance declarado. Son recompensas de la
+          comunidad.
+        </p>
+        <small>No equivalen a certificados académicos.</small>
+      </div>
+    </div>
+    <div class="list-heading">
+      <h2>Tu colección</h2>
+      <button
+        class="text-button"
+        (click)="load(page.offset)"
+        [disabled]="loading()"
+      >
+        ↻ Actualizar
+      </button>
+    </div>
+    <div class="achievement-grid">
+      @for (reward of page.items; track reward.id) {
+        <article class="panel achievement">
+          <span class="medal" aria-hidden="true">✦</span
+          ><span class="points">+{{ reward.puntos }} puntos</span>
+          <h3>{{ reward.insignia }}</h3>
+          <p>Curso #{{ reward.curso_id }} · Módulo #{{ reward.modulo_id }}</p>
+          <small
+            >Versión {{ reward.version_curso }} ·
+            {{ reward.obtenida_en | date: "d MMM yyyy" }}</small
+          >
+          <a [routerLink]="['/comunidad/cursos', reward.curso_id]"
+            >Ir a la comunidad del curso →</a
+          >
+        </article>
+      } @empty {
+        <section class="panel state empty">
+          <span class="empty-symbol" aria-hidden="true">✧</span>
+          <h3>Tu próxima meta está cerca</h3>
+          <p>
+            Completa un módulo para obtener tu primera insignia. Cuando se
+            registre tu logro, aparecerá aquí.
+          </p>
+        </section>
+      }
+    </div>
+    @if (page.total > page.limit) {
+      <nav class="pagination" aria-label="Páginas de logros">
+        <button
+          class="secondary-button"
+          (click)="load(page.offset - page.limit)"
+          [disabled]="loading() || page.offset === 0"
+        >
+          ← Anterior
+        </button>
+        <span
+          >{{ page.offset + 1 }}–{{ page.offset + page.items.length }} de
+          {{ page.total }}</span
+        >
+        <button
+          class="secondary-button"
+          (click)="load(page.offset + page.limit)"
+          [disabled]="loading() || page.offset + page.limit >= page.total"
+        >
+          Siguiente →
+        </button>
+      </nav>
+    }
+  }
+}

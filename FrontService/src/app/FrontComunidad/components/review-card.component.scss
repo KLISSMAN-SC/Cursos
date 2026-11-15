@@ -1,0 +1,76 @@
+:host {
+  display: block;
+}
+.review {
+  padding: 1.6rem;
+}
+.review-head {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+.avatar {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #eaf1e5;
+  color: var(--forest);
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.review-head strong {
+  font-size: 0.85rem;
+}
+.review-head time {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.review-stars {
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: 1rem;
+  color: var(--amber);
+  letter-spacing: 0.05em;
+}
+.comment {
+  font-size: 0.94rem;
+  line-height: 1.75;
+  margin: 1.1rem 0 0.25rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.moderation-toggle {
+  margin-top: 0.8rem;
+  font-size: 0.78rem;
+}
+.moderation-form {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--wash);
+}
+.moderation-form small {
+  display: block;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.8rem;
+}
+@media (max-width: 520px) {
+  .review-head {
+    flex-wrap: wrap;
+  }
+  .review-stars {
+    margin-left: 0;
+    width: 100%;
+  }
+}

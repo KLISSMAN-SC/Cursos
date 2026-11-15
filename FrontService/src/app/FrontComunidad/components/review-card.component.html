@@ -1,0 +1,75 @@
+<article class="panel review">
+  <div class="review-head">
+    <span class="avatar" aria-hidden="true">{{
+      review().estudiante_id % 100
+    }}</span>
+    <div>
+      <strong>Estudiante #{{ review().estudiante_id }}</strong
+      ><time [attr.datetime]="review().creada_en">{{
+        review().creada_en | date: "d MMM yyyy"
+      }}</time>
+    </div>
+    <span
+      class="review-stars"
+      [attr.aria-label]="review().calificacion + ' de 5 estrellas'"
+      >{{ "★".repeat(review().calificacion)
+      }}<span>{{ "☆".repeat(5 - review().calificacion) }}</span></span
+    >
+  </div>
+  <p class="comment">
+    {{ review().comentario || "Compartió su calificación sin un comentario." }}
+  </p>
+  @if (admin()) {
+    @if (!expanded()) {
+      <button
+        class="text-button moderation-toggle"
+        type="button"
+        (click)="expanded.set(true)"
+      >
+        Ocultar reseña <span aria-hidden="true">↗</span>
+      </button>
+    } @else {
+      <form
+        class="moderation-form"
+        (ngSubmit)="hide()"
+        [attr.aria-busy]="busy()"
+      >
+        <label [for]="'reason-' + review().id"
+          >¿Por qué se ocultará esta reseña?</label
+        >
+        <textarea
+          [id]="'reason-' + review().id"
+          name="reason"
+          [(ngModel)]="reason"
+          required
+          maxlength="1000"
+          rows="3"
+          placeholder="Describe el motivo de la moderación"
+          [disabled]="busy()"
+        ></textarea>
+        <small
+          >La reseña dejará de ser pública. El motivo quedará registrado.</small
+        >
+        @if (error()) {
+          <p class="error-message" role="alert">{{ error() }}</p>
+        }
+        <div class="form-actions">
+          <button
+            class="primary-button"
+            type="submit"
+            [disabled]="busy() || !reason.trim()"
+          >
+            {{ busy() ? "Ocultando…" : "Confirmar ocultamiento" }}</button
+          ><button
+            class="secondary-button"
+            type="button"
+            (click)="expanded.set(false); error.set('')"
+            [disabled]="busy()"
+          >
+            Cancelar
+          </button>
+        </div>
+      </form>
+    }
+  }
+</article>

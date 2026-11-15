@@ -1,41 +1,90 @@
 # ComunidadService
 
-Nombre del servicio: ComunidadService. Frontend asociado:
-FrontService/src/app/FrontComunidad/. Propuesta de backend: Python y FastAPI.
+API FastAPI/PostgreSQL de reseñas, moderación auditada, insignias y puntos.
+Frontend asociado: FrontService/src/app/FrontComunidad/.
 
-Este es el esqueleto inicial; todavía no existe app/main.py, requirements.txt,
-configuración de Alembic ni una aplicación que pueda ejecutarse.
+Esta continuación se desarrolla en feat/comunidad-completa a partir de
+feat/comunidad-resenas. Empieza con la [guía de Comunidad completa](docs/COMUNIDAD_COMPLETA.md):
+incluye actualización conservando la base, migración de datos, laboratorio Docker,
+eventos de Progreso y pasos para exponer. Los contratos reales se encuentran en
+[docs/contratos/ComunidadService.md](../docs/contratos/ComunidadService.md).
 
-| Carpeta | Contenido |
-| --- | --- |
-| app/core | Configuración, validación de identidad y permisos |
-| app/database | Conexión y sesión de la base de datos propia |
-| app/models | Entidades persistidas por ComunidadService |
-| app/schemas | Validación de entradas y contratos de salida |
-| app/routers | Endpoints HTTP: reseñas, moderación, logros y salud |
-| app/services | Reglas de negocio y coordinación de operaciones |
-| app/clients | Clientes de APIs externas, si los contratos los requieren |
-| app/events | Consumidores y manejo de eventos, si se acuerda mensajería |
-| migrations/versions | Migraciones reales al configurar Alembic |
-| tests/unit | Pruebas de reglas y permisos |
-| tests/integration | Pruebas de API, persistencia e integraciones |
-| docs | Decisiones y documentación propia del servicio |
+| Función | API | Pantalla |
+| --- | --- | --- |
+| Consultar reseñas y resumen | GET /api/v1/resenas?curso_id=1 | Reseñas del curso, público |
+| Publicar reseña | POST /api/v1/resenas | Formulario de alumno |
+| Consultar/editar la propia | GET /api/v1/resenas/mia y PATCH /api/v1/resenas/{id} | Editar mi reseña |
+| Ocultar reseña con motivo | PATCH /api/v1/resenas/{id}/ocultar | Acción del administrador en la tarjeta |
+| Consultar historial de moderación | GET /api/v1/admin/resenas | /comunidad/moderacion |
+| Consultar puntos e insignias | GET /api/v1/mis-logros | /comunidad/logros |
+| Recibir ModuloCompletado | Consumidor AMQP independiente | Mis logros actualizado |
+| Comprobar identidad | GET /api/v1/sesion | Sesión compartida de FrontService |
+| Estado y conexión | GET /health y GET /health/db | Documentación /docs |
 
-## Alcance inicial a confirmar
+## Arranque desde cero con Docker
 
-- Consultar las reseñas visibles de un curso.
-- Publicar una reseña con calificación y comentario como alumno autenticado.
-- Ocultar una reseña como administrador indicando un motivo, con auditoría.
-- Consultar puntos y logros del alumno autenticado.
-- Procesar los hitos de ProgresoService sin otorgar dos veces el mismo premio.
+Desde ComunidadService, copiar .env.example a .env solo si aún no tienes .env y
+cambiar COMUNIDAD_DB_PASSWORD. Docker no necesita PostgreSQL instalado en Windows.
+Para una demostración antes de integrar Catálogo, seguir el compose.demo.yaml de
+la guía completa. El compose normal exige configurar la verificación de derechos
+real para poder publicar/editar; no concede acceso automáticamente.
 
-La matriz raíz vincula estos requerimientos con sus pantallas. La implementación
-incluye errores y permisos; ocultar un botón no sustituye la autorización del API.
+```powershell
+docker compose build comunidadservice
+docker compose up -d comunidad-db
+docker compose run --rm comunidadservice python -m alembic upgrade head
+docker compose --profile herramientas run --rm --no-deps sesiones-prueba
+docker compose --profile front up -d --build
+```
 
-El alumno y el administrador se identifican mediante la autenticación que se
-acuerde con UsuarioService. No usar un ID editable del navegador como prueba de
-identidad o rol. Los tipos de IDs de curso, alumno y módulo, así como la entrega
-de eventos, se definirán con el equipo antes de implementar los clientes.
+Abrir http://localhost:4200 y seguir la [guía de reseñas](docs/RESENAS.md) para
+cargar las sesiones de prueba. API y Swagger: http://localhost:8001/docs.
+Si ya tenías la base funcionando, conservar .env y el volumen; usar la misma guía
+para actualizar desde la rama feat/comunidad-resenas.
 
-Al comenzar a programar: agregar app/main.py, dependencias, configuración de
-migraciones, .env.example y Dockerfile, y documentar los comandos reales aquí.
+La herramienta de laboratorio permite probar el alumno y el administrador con
+JWT firmados localmente. No reemplaza el inicio de sesión real de UsuarioService.
+La configuración del emisor y su clave pública está documentada en
+[el contrato de ComunidadService](../docs/contratos/ComunidadService.md).
+
+## Ejecución Python opcional
+
+Requiere Python 3.11 o superior. Desde ComunidadService:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m alembic upgrade head
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8001
+```
+
+Para esta opción configurar en .env el PostgreSQL real al que se conectará Python.
+El .env se lee desde la carpeta del servicio, no desde la terminal actual.
+
+## Pruebas
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m ruff check app tests migrations scripts
+.\.venv\Scripts\python.exe -m pip check
+```
+
+Las pruebas usan SQLite aislado y JWT de prueba; no alteran bases del desarrollador.
+La comprobación real de PostgreSQL debe realizarse levantando el compose.
+
+## Organización
+
+- app/core: configuración y verificación JWT/roles.
+- app/models: resenas y moderaciones_resenas.
+- app/schemas: validación estricta y respuestas públicas.
+- app/services: listado, publicación y ocultamiento transaccional.
+- app/routers: salud, sesión y reseñas.
+- app/database: motor, sesiones y metadatos de migraciones.
+- migrations/versions: migraciones reales de las tablas.
+- scripts: herramienta local de sesiones, sin endpoint de autenticación ficticia.
+- tests: permisos, datos, errores, persistencia y migraciones.
+
+Implementados puntos/logros y consumo de eventos, con deduplicación por UUID y
+por hito. Pendiente de integración del equipo: identidad real de UsuarioService,
+endpoint de derechos de Catálogo y outbox/productor de ProgresoService. El doble
+de Catálogo y el publicador de laboratorio se usan solo en la demostración.
